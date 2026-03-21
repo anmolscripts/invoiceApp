@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model Item {
+  item_id     Int      @id @default(autoincrement())
+  item_name   String
+  hsn         String?
+  created_at  DateTime @default(now())
+  created_by  String?
+  updated_at  DateTime @updatedAt
+  active      Boolean  @default(true)
+
+  invoiceItems InvoiceItem[]
+}
+
+model Gst {
+  GST_ID     Int   @id @default(autoincrement())
+  GST_DESCRIPTION  String
+  SGST_RATE        Float
+  CGST_RATE        Float
+  IGST_RATE        Float
+  created_at  DateTime @default(now())
+  created_by  String?
+  updated_at  DateTime @updatedAt
+  active      Boolean  @default(true)
+
+  invoices Invoice[]
+}
+
+model Invoice {
+  invoice_id      Int      @id @default(autoincrement())
+  invoice_number  String   @unique
+  invoice_type    String?
+  client_name     String
+  client_address  String?
+  phone_number    String?
+  invoice_date    DateTime
+   gst_id          Int?   // ✅ add this
+  gst             Gst?   @relation(fields: [gst_id], references: [GST_ID]) // ✅ relation
+  amount          Float
+  round_off       Float?
+  grand_total     Float
+  settle          String
+  settle_amount   Float?
+  pending_amount  Float?
+  created_at      DateTime @default(now())
+  created_by      String?
+  updated_at      DateTime @updatedAt
+  active          Boolean  @default(true)
+
+  items InvoiceItem[]
+}
+
+model InvoiceItem {
+  invoice_item_id Int      @id @default(autoincrement())
+  item_id         Int
+  invoice_id      Int
+  qty             Float
+  rate            Float
+  amount          Float
+  created_at      DateTime @default(now())
+  created_by      String?
+  updated_at      DateTime @updatedAt
+  active          Boolean  @default(true)
+
+  item    Item    @relation(fields: [item_id], references: [item_id])
+  invoice Invoice @relation(fields: [invoice_id], references: [invoice_id])
+}

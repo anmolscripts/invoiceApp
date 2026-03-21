@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div class="container pt-5">
+      <div class="card shadow">
+        <div id="print-container" class="card-body rounded-3 overflow-hidden">
+          <header class="">
+            <div class="header pb-4">
+              <div
+                class="row justify-content-between border-bootom-base px-3 py-3"
+              >
+                <div class="col-4">
+                  <img src="/img/logo.svg" alt="" class="img-fluid" />
+                </div>
+                <div class="col-4">
+                  <ul class="list-group list-group-flush align-items-end">
+                    <li
+                      class="list-group-item d-flex gap-3 align-items-center fs-3 text-base"
+                    >
+                      <i class="bi bi-telephone-fill text-base"></i> 9810186087
+                    </li>
+                    <li
+                      class="list-group-item d-flex gap-2 align-items-center fs-3 text-base"
+                    >
+                      <i class="bi bi-telephone-fill text-base text-base"></i>
+                      8383045705
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <p class="fs-5 text-center m-0 text-base pt-3">
+                Spl. In: Multi Manifold Gas bank, PNG, LPG, Pipeline
+                Installation
+              </p>
+              <p class="fs-5 text-center m-0 text-base">
+                M/S, S/S, Copper, Fire Fitting, Leak Detector (LOT)
+              </p>
+            </div>
+          </header>
+
+          <section class="rounded-3 p-3">
+            <h2 class="fs-3 text-uppercase text-center">Invoice</h2>
+            <div class="d-flex justify-content-between">
+              <h2 class="fs-4 text-uppercase">Site Name</h2>
+              <p class="fs-5">20-03-2026</p>
+            </div>
+
+            <table class="table" id="invoiceTable">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col" class="w-55">Particulars</th>
+                  <th scope="col" class="w-8">HSN</th>
+                  <th scope="col" class="w-8">Quantity</th>
+                  <th class="text-end w-15" scope="col">Rate</th>
+                  <th class="text-end" scope="col">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="table-group-divider">
+                <tr>
+                  <th scope="row">1</th>
+                  <td>
+                    <div class="position-relative input-container">
+                      <input
+                        type="text"
+                        class="form-control __ItemName shadow-sm border-dark"
+                        placeholder="Item Name"
+                        aria-label="Username"
+                        aria-describedby="basic-addon1"
+                      />
+                      <div
+                        class="position-absolute w-100 top-100 left-0 shadow bg-white rounded-bottom-3 __SearchList z-max"
+                      >
+                        <ul class="list-group"></ul>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <input
+                      type="text"
+                      class="form-control __HSN shadow-sm border-dark"
+                      placeholder="HSN Code"
+                      aria-label="Username"
+                      aria-describedby="basic-addon1"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <input
+                      type="text"
+                      class="form-control __Qty shadow-sm border-dark"
+                      placeholder="Quantity"
+                      aria-label="Username"
+                      aria-describedby="basic-addon1"
+                    />
+                  </td>
+                  <td class="text-end">
+                    <div class="input-group">
+                      <span
+                        class="input-group-text bg-base fw-bold"
+                        id="basic-addon1"
+                        >₹</span
+                      >
+                      <input
+                        type="text"
+                        class="form-control __Rate shadow-sm border-dark"
+                        placeholder="Rate"
+                        aria-label="Username"
+                        aria-describedby="basic-addon1"
+                      />
+                    </div>
+                  </td>
+                  <td class="text-end __Amount fw-bold">₹ 0.00</td>
+                </tr>
+                <tr>
+                  <th scope="row">2</th>
+                  <td>
+                    <div class="position-relative input-container">
+                      <input
+                        type="text"
+                        class="form-control __ItemName shadow-sm border-dark"
+                        placeholder="Item Name"
+                        aria-label="Username"
+                        aria-describedby="basic-addon1"
+                      />
+                      <div
+                        class="position-absolute w-100 top-100 left-0 shadow bg-white rounded-bottom-3 __SearchList z-max"
+                      >
+                        <ul class="list-group"></ul>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <input
+                      type="text"
+                      class="form-control __HSN shadow-sm border-dark"
+                      placeholder="HSN Code"
+                      aria-label="Username"
+                      aria-describedby="basic-addon1"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <input
+                      type="text"
+                      class="form-control __Qty shadow-sm border-dark"
+                      placeholder="Quantity"
+                      aria-label="Username"
+                      aria-describedby="basic-addon1"
+                    />
+                  </td>
+                  <td class="text-end">
+                    <div class="input-group">
+                      <span
+                        class="input-group-text bg-base fw-bold"
+                        id="basic-addon1"
+                        >₹</span
+                      >
+                      <input
+                        type="text"
+                        class="form-control __Rate shadow-sm border-dark"
+                        placeholder="Rate"
+                        aria-label="Username"
+                        aria-describedby="basic-addon1"
+                      />
+                    </div>
+                  </td>
+                  <td class="text-end __Amount fw-bold">₹ 0.00</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th></th>
+                  <th class="fw-bold text-uppercase">Total</th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th class="fw-bold text-uppercase text-end">₹ 0.00</th>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th class="fw-bold text-uppercase">TAX</th>
+                  <th></th>
+                  <th></th>
+                  
+                  <th colspan="2" class="fw-bold text-uppercase text-end">
+                    <select
+                      class="form-select"
+                      aria-label="Default select example"
+                    >
+                      <% gst.forEach(g => { %>
+    <option value="<%= g.GST_ID %>">
+      <%= g.GST_DESCRIPTION %>
+    </option>
+  <% }) %>
+                    </select>
+                  </th>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th class="fw-bold text-uppercase">Total After Tax</th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th class="fw-bold text-uppercase text-end">₹ 0.00</th>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th class="fw-bold text-uppercase">Round off</th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <td class="text-end">
+                    <div class="input-group">
+                      <span
+                        class="input-group-text bg-base fw-bold"
+                        id="basic-addon1"
+                        >₹</span
+                      >
+                      <input
+                        type="text"
+                        class="form-control __Rate shadow-sm border-dark"
+                        placeholder="Rate"
+                        aria-label="Username"
+                        aria-describedby="basic-addon1"
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th class="fw-bold text-uppercase">Grand Total</th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th class="fw-bold text-uppercase text-end">₹ 0.00</th>
+                </tr>
+              </tfoot>
+            </table>
+          </section>
+          <div class="mt-4">
+            <button
+              type="button"
+              onclick="PrintContainer('print-container', 70)"
+              class="btn btn-primary"
+            >
+              Print
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/print-container.js"></script>
+    <script type="module" src="/js/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+:root * {
+    font-family: "Montserrat", sans-serif !important;
+}
+
+header {
+    /* background-color: #f9cc0a; */
+    background-image: url(/img/1.jpg);
+    background-size: 100% auto;
+    background-position: 10% 52%;
+    background-repeat: no-repeat;
+}
+.header {
+    background-color: rgba(0,0,0,.6);
+}
+
+body {
+    --base: #f9cc0a;
+}
+.w-55 {
+    width: 55% !important;
+}
+.w-8 {
+    width: 8%;
+}
+.w-15 {
+    width: 15% !important;
+}
+.text-base {
+    color: var(--base) !important;
+}
+
+.z-max {
+    z-index: 99999 !important;
+}
+
+.bg-base {
+    background-color: var(--base) !important;
+}
+
+table td, table th {
+    vertical-align: middle;
+}
+.border-bootom-base {
+    position: relative;
+}
+.border-bootom-base::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    height: 2px;
+    width: 90%;
+    transform: translateX(-50%);
+    background-color: var(--base);
+}
+
+header .list-group-item {
+    border: none !important;
+    background-color: transparent !important;
+} 
+
+.bs {
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}
+
+.__SearchList {
+    display: none;
+}
+.input-container:has(input:focus) .__SearchList {
+    display: block;
+}
