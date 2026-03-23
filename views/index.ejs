@@ -193,9 +193,14 @@
   <script>
     const GST = JSON.parse(`<%- JSON.stringify(gst) %>`);
     console.table(GST);
+  </script>
+
+  <% if (typeof invoice !== "undefined" && invoice) { %>
+  <script>
     const invoice = JSON.parse(`<%- JSON.stringify(invoice) %>`);
     console.table(invoice);
   </script>
+  <% } %>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/print-container.js"></script>
   <script type="module" src="/js/script.js"></script>
