@@ -297,9 +297,8 @@ async function SaveInvoice() {
           confirmButtonText: "Print",
         }).then((result) => {
           /* Read more about isConfirmed, isDenied below */
-          if (result.isConfirmed) PrintContainer('print-container', 80);
-          else if (result.isDenied)
-            Swal.fire("Changes are not saved", "", "info");
+          if (result.isConfirmed) makePrintable();
+          else window.location.href = "/invoiceList";
         });
       }
     })
@@ -309,6 +308,111 @@ async function SaveInvoice() {
 
   console.log(DATA);
 }
+
+function replaceInput(row, className, formatter = (v) => v) {
+  const input = row.querySelector(className);
+  if (input) {
+    const td = input.closest("td");
+    td.innerHTML = formatter(input.value || "");
+  }
+}
+
+function makePrintable(id = "invoiceTable") {
+  const table = document.getElementById(id);
+
+  if (table) {
+    const tbody = table.querySelector("tbody");
+
+    if (tbody) {
+      const rows = tbody.querySelectorAll("tr");
+
+      rows.forEach((row) => {
+        const amount = row.querySelector(".__Amount");
+
+        // ❌ remove empty rows
+        if (!amount || !amount.hasAttribute("data-value")) {
+          row.remove();
+          return;
+        }
+
+        // 🔹 ITEM NAME
+        replaceInput(row, ".__ItemName");
+        replaceInput(row, ".__HSN");
+        replaceInput(row, ".__Qty");
+
+        replaceInput(
+          row,
+          ".__Rate",
+          (v) => `₹ ${rateConvert(parseFloat(v || 0).toFixed(2))}`,
+        );
+
+        replaceField('.__InvoiceType');
+        replaceField('.__SiteTitle');
+        replaceField('.__InvoiceDate');
+
+        removeField('.__GST');
+        removeField('.__RoundOffContainer');
+        removeField('.__save-btn-container');
+      });
+    }
+  }
+
+  PrintContainer("print-container", 80);
+  window.onafterprint = function () {
+    window.location.href = "/invoiceList"; // 👈 change route here
+  };
+}
+
+
+function replaceField(selector, root = document) {
+  const elements = root.querySelectorAll(selector);
+
+  elements.forEach((el) => {
+    let value = "";
+
+    // 🔹 SELECT
+    if (el.tagName === "SELECT") {
+      const selectedOption = el.options[el.selectedIndex];
+      value = selectedOption ? selectedOption.text : "";
+    }
+
+    // 🔹 INPUT
+    else if (el.tagName === "INPUT") {
+      // DATE
+      if (el.type === "date") {
+        if (el.value) {
+          const date = new Date(el.value);
+
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = date.toLocaleString("en-GB", { month: "short" }).toUpperCase();
+          const year = date.getFullYear();
+
+          value = `${day}-${month}-${year}`;
+        }
+      } else {
+        value = el.value || "";
+      }
+    }
+
+    // 🔹 TEXTAREA (optional support)
+    else if (el.tagName === "TEXTAREA") {
+      value = el.value || "";
+    }
+
+    // Replace parent TD/div content
+    const parent = el.closest("td, div, span") || el.parentNode;
+    parent.innerHTML = value;
+  });
+}
+
+function removeField(selector, root = document) {
+  const elements = root.querySelectorAll(selector);
+
+  elements.forEach((el) => {
+    el.remove();
+  });
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   addInvoiceEvent("invoiceTable");

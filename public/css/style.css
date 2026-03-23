@@ -5,13 +5,15 @@
 
 header {
     /* background-color: #f9cc0a; */
-    background-image: url(/img/1.jpg);
+    /* background-image: url(/img/1.jpg); */
     background-size: 100% auto;
     background-position: 10% 52%;
     background-repeat: no-repeat;
+    background-color: #1B3C53;
+    border-radius: 1rem;
 }
 .header {
-    background-color: rgba(0,0,0,.6);
+    /* background-color: rgba(0,0,0,.6); */
 }
 
 body {

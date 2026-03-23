@@ -2,12 +2,35 @@ const express = require("express");
 const router = express.Router();
 const invoiceModel = require("../models/invoiceModel");
 const prisma = require("../models/prisma");
+const { rateConvert,formatDate } = require('../utils/utility');
 // Page routes
 router.get("/", (req, res) => {
   invoiceModel.getAllGst((gst) => {
     res.render("index", { gst }); // ✅ object pass karo
   });
 });
+router.get("/invoiceList", (req, res) => {
+  invoiceModel.getAllInvoice((invoice) => {
+    res.render("list", { invoice, rateConvert,formatDate }); // ✅ object pass karo
+  });
+});
+
+router.get('/edit/:id', async (req, res) => {
+  const id = req.params.id;
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { invoice_id: Number(id) },
+    include: {
+      items: true
+    }
+  });
+
+  invoiceModel.getAllGst((gst) => {
+    res.render('index', { invoice, gst });// ✅ object pass karo
+  });
+  
+});
+
 router.get("/add", (req, res) => {
   res.render("index");
 });

@@ -44,7 +44,7 @@
 
         <section class="rounded-3 p-3">
           <div class="d-flex justify-content-center">
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-3 fs-3 text-center fw-bold text-uppercase">
               <select class="form-select fs-4 shadow __InvoiceType" aria-label="Default select example">
                 <option selected>Invoice Type</option>
                 <option value="Invoice">Invoice</option>
@@ -53,10 +53,10 @@
             </div>
           </div>
           <div class="d-flex justify-content-between">
-            <div class="col-md-4">
+            <div class="col-md-4 fs-5 fw-bold text-uppercase">
               <input type="text" class="form-control __SiteTitle shadow-sm border-dark" placeholder="Site Name" aria-label="Username" aria-describedby="basic-addon1" />
             </div>
-            <div class="">
+            <div class=" fs-5 fw-bold text-uppercase">
               <input type="date" class="form-control __InvoiceDate shadow-sm border-dark" placeholder="Site Name" aria-label="Username" aria-describedby="basic-addon1" />
             </div>
           </div>
@@ -163,7 +163,7 @@
                 <th></th>
 
                 <td class="text-end">
-                  <div class="input-group">
+                  <div class="input-group __RoundOffContainer">
                     <span class="input-group-text bg-base fw-bold" id="basic-addon1">₹</span>
                     <input type="text" class="form-control __Rate shadow-sm border-dark __RoundOff" placeholder="Rate" aria-label="Username" aria-describedby="basic-addon1" />
                   </div>
@@ -181,7 +181,7 @@
             </tfoot>
           </table>
         </section>
-        <div class="mt-4 d-flex justify-content-center">
+        <div class="mt-4 d-flex justify-content-center __save-btn-container">
           <button type="button" class="btn btn-primary px-4 text-uppercase fw-bold shadow __SaveBtn">
             Save
           </button>
@@ -193,6 +193,8 @@
   <script>
     const GST = JSON.parse(`<%- JSON.stringify(gst) %>`);
     console.table(GST);
+    const invoice = JSON.parse(`<%- JSON.stringify(invoice) %>`);
+    console.table(invoice);
   </script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/print-container.js"></script>

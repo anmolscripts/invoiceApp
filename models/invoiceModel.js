@@ -10,6 +10,16 @@ exports.getAllGst = (callback) => {
     });
 };
 
+exports.getAllInvoice = (callback) => {
+    db.all('SELECT * FROM invoice ORDER BY invoice_id DESC', [], (err, rows) => {
+        if (err) {
+            console.error(err);
+            return callback([]);
+        }
+        callback(rows);
+    });
+};
+
 exports.saveInvoice = async (formData, callback) => {
     try {
         const {

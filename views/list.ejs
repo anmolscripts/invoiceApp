@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <div class="container pt-5">
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <h1 class="text-center text-uppercase">Invoice List</h1>
+          <a href="/">
+            <button type="button" class="btn btn-dark">Add +</button>
+          </a>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Site</th>
+              <th class="text-center" scope="col">Date</th>
+              <th class="text-end fw-bold" scope="col">Grand Amount</th>
+              <th class="text-end fw-bold" scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody class="table-group-divider">
+            <% invoice.forEach((g, i) => { %>
+            <tr key="<%= g.invoice_id %>">
+              <th><%= i+1 %></th>
+              <td><%= g.client_name %></td>
+              <td class="text-center"><%= formatDate(g.invoice_date) %></td>
+              <td class="text-end fw-bold"><%= rateConvert(g.grand_total.toFixed(2)) %></td>
+              <td class="text-end fw-bold">
+                <a href="/edit/<%= g.invoice_id %>">
+                  <button type="button" class="btn btn-dark">Edit</button>
+                </a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GST = JSON.parse(`<%- JSON.stringify(invoice) %>`);
+    console.table(GST);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/print-container.js"></script>
+  <script type="module" src="/js/script.js"></script>
+</body>
+
+</html>
