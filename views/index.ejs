@@ -1,209 +1,195 @@
-<!doctype html>
-<html lang="en">
+<%
+const record = typeof invoice !== "undefined" ? invoice : null;
+%>
+<%- include("partials/layout-start", { title: record ? "Edit Record" : "Create Record", bodyClass: "invoice-page" }) %>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-
-<body>
-  <div class="container pt-5">
-    <div class="card shadow">
-      <div id="print-container" class="card-body rounded-3 overflow-hidden">
-        <header class="">
-          <div class="header pb-4">
-            <div class="row justify-content-between border-bootom-base px-3 py-3">
-              <div class="col-4">
-                <img src="/img/logo.svg" alt="" class="img-fluid" />
-              </div>
-              <div class="col-4">
-                <ul class="list-group list-group-flush align-items-end">
-                  <li class="list-group-item d-flex gap-3 align-items-center fs-3 text-base">
-                    <i class="bi bi-telephone-fill text-base"></i> 9810186087
-                  </li>
-                  <li class="list-group-item d-flex gap-2 align-items-center fs-3 text-base">
-                    <i class="bi bi-telephone-fill text-base text-base"></i>
-                    8383045705
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <p class="fs-5 text-center m-0 text-base pt-3">
-              Spl. In: Multi Manifold Gas bank, PNG, LPG, Pipeline
-              Installation
-            </p>
-            <p class="fs-5 text-center m-0 text-base">
-              M/S, S/S, Copper, Fire Fitting, Leak Detector (LOT)
-            </p>
-          </div>
-        </header>
-
-        <section class="rounded-3 p-3">
-          <div class="d-flex justify-content-center">
-            <div class="col-md-4 mb-3 fs-3 text-center fw-bold text-uppercase">
-              <select class="form-select fs-4 shadow __InvoiceType" aria-label="Default select example">
-                <option selected>Invoice Type</option>
-                <option value="Invoice">Invoice</option>
-                <option value="Quotation">Quotation</option>
-              </select>
-            </div>
-          </div>
-          <div class="d-flex justify-content-between">
-            <div class="col-md-4 fs-5 fw-bold text-uppercase">
-              <input type="text" class="form-control __SiteTitle shadow-sm border-dark" placeholder="Site Name" aria-label="Username" aria-describedby="basic-addon1" />
-            </div>
-            <div class=" fs-5 fw-bold text-uppercase">
-              <input type="date" class="form-control __InvoiceDate shadow-sm border-dark" placeholder="Site Name" aria-label="Username" aria-describedby="basic-addon1" />
-            </div>
-          </div>
-
-          <table class="table" id="invoiceTable">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col" class="w-55">Particulars</th>
-                <th scope="col" class="w-8">HSN</th>
-                <th scope="col" class="w-8">Quantity</th>
-                <th class="text-end w-15" scope="col">Rate</th>
-                <th class="text-end" scope="col">Amount</th>
-              </tr>
-            </thead>
-            <tbody class="table-group-divider">
-              <tr>
-                <th scope="row">1</th>
-                <td>
-                  <div class="position-relative input-container">
-                    <input type="text" class="form-control __ItemName shadow-sm border-dark" placeholder="Item Name" aria-label="Username" aria-describedby="basic-addon1" />
-                    <div class="position-absolute w-100 top-100 left-0 shadow bg-white rounded-bottom-3 __SearchList z-max">
-                      <ul class="list-group"></ul>
-                    </div>
-                  </div>
-                </td>
-                <td class="text-center">
-                  <input type="text" class="form-control __HSN shadow-sm border-dark" placeholder="HSN Code" aria-label="Username" aria-describedby="basic-addon1" />
-                </td>
-                <td class="text-center">
-                  <input type="text" class="form-control __Qty shadow-sm border-dark" placeholder="Quantity" aria-label="Username" aria-describedby="basic-addon1" />
-                </td>
-                <td class="text-end">
-                  <div class="input-group">
-                    <span class="input-group-text bg-base fw-bold" id="basic-addon1">₹</span>
-                    <input type="text" class="form-control __Rate shadow-sm border-dark" placeholder="Rate" aria-label="Username" aria-describedby="basic-addon1" />
-                  </div>
-                </td>
-                <td class="text-end __Amount fw-bold">₹ 0.00</td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td>
-                  <div class="position-relative input-container">
-                    <input type="text" class="form-control __ItemName shadow-sm border-dark" placeholder="Item Name" aria-label="Username" aria-describedby="basic-addon1" />
-                    <div class="position-absolute w-100 top-100 left-0 shadow bg-white rounded-bottom-3 __SearchList z-max">
-                      <ul class="list-group"></ul>
-                    </div>
-                  </div>
-                </td>
-                <td class="text-center">
-                  <input type="text" class="form-control __HSN shadow-sm border-dark" placeholder="HSN Code" aria-label="Username" aria-describedby="basic-addon1" />
-                </td>
-                <td class="text-center">
-                  <input type="text" class="form-control __Qty shadow-sm border-dark" placeholder="Quantity" aria-label="Username" aria-describedby="basic-addon1" />
-                </td>
-                <td class="text-end">
-                  <div class="input-group">
-                    <span class="input-group-text bg-base fw-bold" id="basic-addon1">₹</span>
-                    <input type="text" class="form-control __Rate shadow-sm border-dark" placeholder="Rate" aria-label="Username" aria-describedby="basic-addon1" />
-                  </div>
-                </td>
-                <td class="text-end __Amount fw-bold">₹ 0.00</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <th></th>
-                <th class="fw-bold text-uppercase">Total</th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th class="fw-bold text-uppercase text-end __Total">₹ 0.00</th>
-              </tr>
-              <tr>
-                <th></th>
-                <th class="fw-bold text-uppercase">TAX</th>
-                <th></th>
-
-
-                <th colspan="2" class="fw-bold text-uppercase text-end">
-                  <select class="form-select __GST" aria-label="Default select example">
-                    <% gst.forEach(g => { %>
-                    <option value="<%= g.GST_ID %>">
-                      <%= g.GST_DESCRIPTION %>
-                    </option>
-                    <% }) %>
-                  </select>
-                </th>
-                <th class="fw-bold text-uppercase text-end __TotalTax">₹ 0.00</th>
-              </tr>
-              <tr>
-                <th></th>
-                <th class="fw-bold text-uppercase">Total After Tax</th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th class="fw-bold text-uppercase text-end __TotalAfterTax">₹ 0.00</th>
-              </tr>
-              <tr>
-                <th></th>
-                <th class="fw-bold text-uppercase">Round off</th>
-                <th></th>
-                <th></th>
-
-                <td class="text-end">
-                  <div class="input-group __RoundOffContainer">
-                    <span class="input-group-text bg-base fw-bold" id="basic-addon1">₹</span>
-                    <input type="text" class="form-control __Rate shadow-sm border-dark __RoundOff" placeholder="Rate" aria-label="Username" aria-describedby="basic-addon1" />
-                  </div>
-                </td>
-                <th class="fw-bold text-uppercase text-end __RoundOffAmount">₹ 0.00</th>
-              </tr>
-              <tr>
-                <th></th>
-                <th class="fw-bold text-uppercase">Grand Total</th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th class="fw-bold text-uppercase text-end __GrandTotal">₹ 0.00</th>
-              </tr>
-            </tfoot>
-          </table>
-        </section>
-        <div class="mt-4 d-flex justify-content-center __save-btn-container">
-          <button type="button" class="btn btn-primary px-4 text-uppercase fw-bold shadow __SaveBtn">
-            Save
-          </button>
+<main class="app-shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="hero-label"><i class="bi bi-stars"></i> Premium Workspace</span>
+        <h1><%= record ? "Edit invoice or quotation with full detail control." : "Create polished invoices and quotations faster." %></h1>
+        <p>Use the same premium workspace for new records and edits. Line items, GST, round-off, totals, and print-ready output stay in one clean flow.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="top-btn primary" href="/"><i class="bi bi-grid-1x2-fill"></i> Open Register</a>
+          <a class="top-btn secondary" href="/add"><i class="bi bi-plus-circle-fill"></i> New Record</a>
+          <a class="top-btn secondary" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const GST = JSON.parse(`<%- JSON.stringify(gst) %>`);
-    console.table(GST);
-  </script>
+    <div class="metrics-grid">
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>Mode</span>
+          <span class="metric-icon"><i class="bi bi-pencil-square"></i></span>
+        </div>
+        <div class="metric-value text-secondary" id="metricMode"><%= record ? "Edit" : "Create" %></div>
+        <p><%= record ? "This record will be updated in place." : "A new record will be created." %></p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>Document No.</span>
+          <span class="metric-icon"><i class="bi bi-upc-scan"></i></span>
+        </div>
+        <div class="metric-value text-secondary" id="metricNumber"><%= record?.invoice_number || "Auto" %></div>
+        <p>Auto-generated for new records and preserved on update.</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>Items</span>
+          <span class="metric-icon"><i class="bi bi-box-seam"></i></span>
+        </div>
+        <div class="metric-value text-secondary" id="metricItems"><%= record?.items?.length || 0 %></div>
+        <p>Live item count based on active rows in the sheet.</p>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>Grand Total</span>
+          <span class="metric-icon"><i class="bi bi-cash-stack"></i></span>
+        </div>
+        <div class="metric-value text-secondary" id="metricGrandTotal">&#8377; 0.00</div>
+        <p>Calculated live with GST and round-off.</p>
+      </article>
+    </div>
+  </section>
 
-  <% if (typeof invoice !== "undefined" && invoice) { %>
-  <script>
-    const invoice = JSON.parse(`<%- JSON.stringify(invoice) %>`);
-    console.table(invoice);
-  </script>
-  <% } %>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/js/print-container.js"></script>
-  <script type="module" src="/js/script.js"></script>
-</body>
+  <section class="workbench">
+    <div class="panel-head">
+      <div>
+        <h2>Document Builder</h2>
+        <p>The layout now matches the new listing page and supports both create and update actions.</p>
+      </div>
+      <span class="doc-pill"><i class="bi bi-file-earmark-text"></i> <span id="docTypeBadge"><%= record?.invoice_type || "Invoice Type" %></span></span>
+    </div>
 
-</html>
+    <div id="print-container" class="invoice-sheet">
+      <div class="sheet-header">
+        <div class="row g-3 align-items-center">
+          <div class="col-lg-7">
+            <div class="brand-card">
+              <img src="/img/logo.svg" alt="Logo" class="img-fluid" />
+              <p class="mb-0 mt-3">Spl. In: Multi Manifold Gas bank, PNG, LPG, Pipeline Installation. M/S, S/S, Copper, Fire Fitting, Leak Detector (LOT).</p>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="brand-card">
+              <ul class="contact-stack">
+                <li><i class="bi bi-telephone-fill"></i> 9810186087</li>
+                <li><i class="bi bi-telephone-fill"></i> 8383045705</li>
+                <li><i class="bi bi-calendar2-week"></i> <span id="headerDateLabel"><%= record ? new Date(record.invoice_date).toISOString().slice(0, 10) : "Select date" %></span></li>
+                <li><i class="bi bi-receipt-cutoff"></i> <span id="headerNumberLabel"><%= record?.invoice_number || "Will generate after save" %></span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-body">
+        <div class="control-grid">
+          <div class="field-card">
+            <label for="invoiceType">Document Type</label>
+            <select id="invoiceType" class="form-select __InvoiceType">
+              <option value="">Invoice Type</option>
+              <option value="Invoice">Invoice</option>
+              <option value="Quotation">Quotation</option>
+            </select>
+          </div>
+          <div class="field-card">
+            <label for="siteTitle">Client / Site Name</label>
+            <input id="siteTitle" type="text" class="form-control __SiteTitle" placeholder="Site Name" />
+          </div>
+          <div class="field-card">
+            <label for="invoiceDate">Invoice Date</label>
+            <input id="invoiceDate" type="date" class="form-control __InvoiceDate" />
+          </div>
+          <div class="field-card">
+            <label for="gstSelect">GST Profile</label>
+            <select id="gstSelect" class="form-select __GST">
+              <% gst.forEach((g) => { %>
+              <option value="<%= g.GST_ID %>"><%= g.GST_DESCRIPTION %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="invoice-table-wrap">
+          <div class="table-responsive">
+            <table class="table invoice-table" id="invoiceTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="w-55">Particulars</th>
+                  <th class="w-8">HSN</th>
+                  <th class="w-8">Qty</th>
+                  <th class="text-end w-15">Rate</th>
+                  <th class="text-end">Amount</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="invoiceRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="totals-board">
+          <section class="note-box">
+            <h5 class="fw-bold mb-2">Quick Notes</h5>
+            <p class="empty-message mb-3">Add or edit rows, then use save or update. On edit mode, the existing record is replaced with the latest table data.</p>
+            <button type="button" class="control-btn soft" id="addRowBtn"><i class="bi bi-plus-lg"></i> Add Item Row</button>
+          </section>
+
+          <section class="summary-box">
+            <div class="summary-line">
+              <span>Sub Total</span>
+              <strong class="__Total">&#8377; 0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Total Tax</span>
+              <strong class="__TotalTax">&#8377; 0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>After Tax</span>
+              <strong class="__TotalAfterTax">&#8377; 0.00</strong>
+            </div>
+            <div class="summary-line">
+              <span>Round Off</span>
+              <span class="d-flex align-items-center gap-2">
+                <input type="number" class="form-control __RoundOff" step="0.01" placeholder="0.00" style="width: 120px;" />
+                <strong class="__RoundOffAmount">&#8377; 0.00</strong>
+              </span>
+            </div>
+            <div class="summary-line total">
+              <span>Grand Total</span>
+              <strong class="__GrandTotal">&#8377; 0.00</strong>
+            </div>
+          </section>
+        </div>
+
+        <div class="action-bar __save-btn-container">
+          <div class="action-left">
+            <button type="button" class="control-btn soft" id="printBtn"><i class="bi bi-printer"></i> Print Preview</button>
+          </div>
+          <div class="action-right">
+            <a href="/" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back to Register</a>
+            <button type="button" class="control-btn accent __SaveBtn"><i class="bi bi-check2-circle"></i> <span id="saveBtnLabel"><%= record ? "Update Record" : "Save Record" %></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="print-template-root" class="hidden-print"></div>
+  </section>
+</main>
+
+<script>
+  const GST = JSON.parse(`<%- JSON.stringify(gst) %>`);
+  const INVOICE_DATA = <%- JSON.stringify(record || null) %>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/js/print-container.js"></script>
+<script type="module" src="/js/script.js"></script>
+
+<%- include("partials/layout-end") %>

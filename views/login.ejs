@@ -1,0 +1,52 @@
+<%- include("partials/layout-start", { title: "Admin Login", bodyClass: "login-page" }) %>
+
+<main class="login-shell">
+  <section class="login-brand">
+    <span class="eyebrow"><i class="bi bi-shield-lock-fill"></i> Secure Admin Access</span>
+    <img src="/img/logo.svg" alt="Logo" />
+    <h1>Manage invoices, quotations, and branding from one premium workspace.</h1>
+    <p>Authorized access only. Sign in to open the invoice register, create records, edit details, and work with the protected admin area.</p>
+    <div class="brand-rail">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-card">
+      <h2>Admin Login</h2>
+      <p>Use your admin credentials to continue to the listing dashboard.</p>
+
+      <% if (error) { %>
+      <div class="alert alert-custom"><%= error %></div>
+      <% } %>
+
+      <form action="/login" method="post">
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+            <input id="username" name="username" type="text" class="form-control" placeholder="Enter username" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+            <input id="password" name="password" type="password" class="form-control" placeholder="Enter password" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">Login to Register</button>
+      </form>
+
+      <div class="hint-box">
+        <strong>Default access:</strong> username `admin` and password `admin`
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include("partials/layout-end") %>

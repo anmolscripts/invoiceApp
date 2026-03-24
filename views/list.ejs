@@ -1,62 +1,279 @@
-<!doctype html>
-<html lang="en">
+<%- include("partials/layout-start", { title: "Invoice Register", bodyClass: "list-page" }) %>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-
-<body>
-  <div class="container pt-5">
-    <div class="card shadow">
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <h1 class="text-center text-uppercase">Invoice List</h1>
-          <a href="/">
-            <button type="button" class="btn btn-dark">Add +</button>
-          </a>
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end position-relative">
+      <div class="col-lg-8 hero-copy">
+        <span class="eyebrow"><i class="bi bi-grid-1x2-fill"></i> Premium Register</span>
+        <h1>Invoice and quotation listing in one clean workspace.</h1>
+        <p>Track every record with fast search, quick filters, GST visibility, item previews, and full detail expansion from the same page.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/add"><i class="bi bi-plus-circle-fill"></i> Create New</a>
+          <a class="hero-btn secondary" href="#recordBoard"><i class="bi bi-arrow-down-circle"></i> Browse Records</a>
+          <a class="hero-btn secondary" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Site</th>
-              <th class="text-center" scope="col">Date</th>
-              <th class="text-end fw-bold" scope="col">Grand Amount</th>
-              <th class="text-end fw-bold" scope="col">Action</th>
-            </tr>
-          </thead>
-          <tbody class="table-group-divider">
-            <% invoice.forEach((g, i) => { %>
-            <tr key="<%= g.invoice_id %>">
-              <th><%= i+1 %></th>
-              <td><%= g.client_name %></td>
-              <td class="text-center"><%= formatDate(g.invoice_date) %></td>
-              <td class="text-end fw-bold"><%= rateConvert(g.grand_total.toFixed(2)) %></td>
-              <td class="text-end fw-bold">
-                <a href="/edit/<%= g.invoice_id %>">
-                  <button type="button" class="btn btn-dark">Edit</button>
-                </a>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
       </div>
     </div>
-  </div>
 
-  <script>
-    const GST = JSON.parse(`<%- JSON.stringify(invoice) %>`);
-    console.table(GST);
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/js/print-container.js"></script>
-  <script type="module" src="/js/script.js"></script>
-</body>
+    <div class="summary-grid">
+      <article class="summary-card">
+        <div class="summary-label">
+          <span>Total Records</span>
+          <span class="summary-icon"><i class="bi bi-files"></i></span>
+        </div>
+        <h2 class="text-secondary" id="summaryTotalRecords"><%= stats.totalRecords %></h2>
+        <p>All active entries on this register page.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label">
+          <span>Invoices</span>
+          <span class="summary-icon"><i class="bi bi-receipt"></i></span>
+        </div>
+        <h2 id="summaryInvoiceCount" class="text-secondary"><%= stats.invoiceCount %></h2>
+        <p>Invoices ready to review or edit.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label">
+          <span>Quotations</span>
+          <span class="summary-icon"><i class="bi bi-file-earmark-text"></i></span>
+        </div>
+        <h2 id="summaryQuotationCount" class="text-secondary"><%= stats.quotationCount %></h2>
+        <p>Quotation records visible in the same stream.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label">
+          <span>Total Value</span>
+          <span class="summary-icon"><i class="bi bi-cash-stack"></i></span>
+        </div>
+        <h2 id="summaryTotalValue" class="text-secondary">₹ <%= rateConvert(stats.totalValue.toFixed(2)) %></h2>
+        <p>Combined gross value across visible records.</p>
+      </article>
+    </div>
+  </section>
 
-</html>
+  <section class="board" id="recordBoard">
+    <div class="board-head">
+      <div class="board-title">
+        <h3>Register Overview</h3>
+        <p>Search by client, number, GST, type, settle status, or item name.</p>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box shadow-sm rounded-4">
+          <i class="bi bi-search"></i>
+          <input type="search" id="listSearch" placeholder="Search invoice number, client, item, GST..." />
+        </div>
+        <div class="filter-group">
+          <button class="filter-chip active" type="button" data-filter="all">All</button>
+          <button class="filter-chip" type="button" data-filter="invoice">Invoice</button>
+          <button class="filter-chip" type="button" data-filter="quotation">Quotation</button>
+          <button class="filter-chip" type="button" data-filter="record">Others</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-meta">
+      <span id="visibleCount"><%= stats.totalRecords %> records showing</span>
+      <span>Click "Details" on any row to see GST, round-off, item lines, and status.</span>
+    </div>
+
+    <div class="records" id="recordsList">
+      <% if (invoice.length === 0) { %>
+      <div class="empty-state">
+        <i class="bi bi-journal-x"></i>
+        <h4>No records found</h4>
+        <p>Create your first invoice or quotation to start filling this register.</p>
+      </div>
+      <% } %>
+
+      <% invoice.forEach((entry, i) => { 
+        const entryType = (entry.invoice_type || "Record").trim() || "Record";
+        const entryTypeClass = entryType.toLowerCase();
+        const settleValue = (entry.settle || "Pending").toString().trim();
+        const settleClass = ["pending", "paid", "settled", "yes"].includes(settleValue.toLowerCase()) ? settleValue.toLowerCase() : "default";
+        const itemNames = entry.items.map(item => item.item?.item_name || "Item").join(" ");
+        const searchText = [
+          entry.invoice_number,
+          entryType,
+          entry.client_name,
+          settleValue,
+          entry.gst?.GST_DESCRIPTION || "",
+          itemNames
+        ].join(" ").toLowerCase();
+      %>
+      <article class="record-row" data-record data-type="<%= entryTypeClass %>" data-amount="<%= Number(entry.grand_total || 0) %>" data-search="<%= searchText %>">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(i + 1).padStart(2, "0") %></strong>
+            <span class="record-type <%= entryTypeClass %>"><%= entryType %></span>
+          </div>
+
+          <div class="record-title">
+            <strong><%= entry.client_name || "Unnamed Client" %></strong>
+            <span><%= entry.invoice_number %></span>
+          </div>
+
+          <div class="record-cell">
+            <small>Date</small>
+            <strong><%= formatDate(entry.invoice_date) %></strong>
+          </div>
+
+          <div class="record-cell">
+            <small>GST / Tax</small>
+            <strong><%= entry.gst?.GST_DESCRIPTION || "Not attached" %></strong>
+          </div>
+
+          <div class="record-amount">
+            <small class="d-block text-muted text-center">Grand Total</small>
+            <strong>₹ <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></strong>
+          </div>
+
+          <div class="record-actions">
+            <button class="action-btn view js-toggle-detail" type="button">
+              <i class="bi bi-eye"></i> Details
+            </button>
+            <% if (entryTypeClass === "quotation") { %>
+            <a class="action-btn view" href="/convert/<%= entry.invoice_id %>">
+              <i class="bi bi-arrow-repeat"></i> Convert
+            </a>
+            <% } %>
+            <a class="action-btn edit" href="/edit/<%= entry.invoice_id %>">
+              <i class="bi bi-pencil-square"></i> Edit
+            </a>
+          </div>
+        </div>
+
+        <div class="record-detail">
+          <div class="detail-grid">
+            <section class="detail-card">
+              <h4>Record Details</h4>
+              <div class="detail-list">
+                <div class="detail-line">
+                  <span>Client</span>
+                  <strong><%= entry.client_name || "-" %></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Type</span>
+                  <strong><%= entryType %></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Status</span>
+                  <strong><span class="record-status <%= settleClass %>"><%= settleValue %></span></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Base Amount</span>
+                  <strong>₹ <%= rateConvert(Number(entry.amount || 0).toFixed(2)) %></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Round Off</span>
+                  <strong>₹ <%= rateConvert(Number(entry.round_off || 0).toFixed(2)) %></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Total Items</span>
+                  <strong><%= entry.items.length %></strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="detail-card">
+              <h4>Item Breakdown</h4>
+              <% if (entry.items.length > 0) { %>
+              <div class="item-stack">
+                <% entry.items.forEach((line) => { %>
+                <div class="item-line">
+                  <div>
+                    <strong><%= line.item?.item_name || "Item" %></strong>
+                    <small>HSN: <%= line.item?.hsn || "-" %> | Qty: <%= line.qty %> | Rate: ₹ <%= rateConvert(Number(line.rate || 0).toFixed(2)) %></small>
+                  </div>
+                  <strong>₹ <%= rateConvert(Number(line.amount || 0).toFixed(2)) %></strong>
+                </div>
+                <% }) %>
+              </div>
+              <% } else { %>
+              <p class="m-0 text-muted">No item rows are stored for this record yet.</p>
+              <% } %>
+            </section>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<script>
+  (() => {
+    const records = Array.from(document.querySelectorAll("[data-record]"));
+    const chips = Array.from(document.querySelectorAll(".filter-chip"));
+    const searchInput = document.getElementById("listSearch");
+    const visibleCount = document.getElementById("visibleCount");
+    const summaryTotalRecords = document.getElementById("summaryTotalRecords");
+    const summaryInvoiceCount = document.getElementById("summaryInvoiceCount");
+    const summaryQuotationCount = document.getElementById("summaryQuotationCount");
+    const summaryTotalValue = document.getElementById("summaryTotalValue");
+    let activeFilter = "all";
+
+    const formatCurrency = (amount) => {
+      return Number(amount || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    };
+
+    const updateSummary = (visibleRecords) => {
+      const invoiceCount = visibleRecords.filter((record) => record.dataset.type === "invoice").length;
+      const quotationCount = visibleRecords.filter((record) => record.dataset.type === "quotation").length;
+      const totalValue = visibleRecords.reduce((sum, record) => sum + Number(record.dataset.amount || 0), 0);
+
+      visibleCount.textContent = `${visibleRecords.length} record${visibleRecords.length === 1 ? "" : "s"} showing`;
+      summaryTotalRecords.textContent = visibleRecords.length;
+      summaryInvoiceCount.textContent = invoiceCount;
+      summaryQuotationCount.textContent = quotationCount;
+      summaryTotalValue.textContent = `₹ ${formatCurrency(totalValue)}`;
+    };
+
+    const applyFilters = () => {
+      const query = (searchInput.value || "").trim().toLowerCase();
+      const visibleRecords = [];
+
+      records.forEach((record) => {
+        const matchesFilter = activeFilter === "all" || record.dataset.type === activeFilter;
+        const matchesSearch = !query || record.dataset.search.includes(query);
+        const isVisible = matchesFilter && matchesSearch;
+
+        record.classList.toggle("hidden-record", !isVisible);
+        if (isVisible) visibleRecords.push(record);
+      });
+
+      updateSummary(visibleRecords);
+    };
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.filter;
+        chips.forEach((button) => button.classList.toggle("active", button === chip));
+        applyFilters();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener("input", applyFilters);
+    }
+
+    document.querySelectorAll(".js-toggle-detail").forEach((button) => {
+      button.addEventListener("click", () => {
+        const row = button.closest(".record-row");
+        const isExpanded = row.classList.toggle("expanded");
+        button.innerHTML = isExpanded
+          ? '<i class="bi bi-eye-slash"></i> Hide'
+          : '<i class="bi bi-eye"></i> Details';
+      });
+    });
+
+    applyFilters();
+  })();
+</script>
+
+<%- include("partials/layout-end") %>
