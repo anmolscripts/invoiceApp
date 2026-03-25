@@ -1,0 +1,47 @@
+<%- include("../partials/layout-start", { title: "Users", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-person-badge-fill"></i> User Management</span>
+        <h1>Create employees, assign roles, and restrict module access.</h1>
+        <p>Only admins can manage users. Each user gets a generated setup link to set their own password securely.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/users/add"><i class="bi bi-person-plus-fill"></i> Add User</a>
+          <a class="hero-btn secondary" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+          <a class="hero-btn secondary" href="/history"><i class="bi bi-clock-history"></i> History</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="records">
+      <% users.forEach((user, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(index + 1).padStart(2, "0") %></strong>
+            <span class="record-type invoice"><%= user.role %></span>
+          </div>
+          <div class="record-title">
+            <strong><%= user.user_name %></strong>
+            <span><%= user.user_code %></span>
+          </div>
+          <div class="record-cell"><small>Email</small><strong><%= user.email || "-" %></strong></div>
+          <div class="record-cell"><small>Phone</small><strong><%= user.phone_number || "-" %></strong></div>
+          <div class="record-amount"><small class="d-block text-muted text-center">Modules</small><strong><%= user.userModules.length %></strong></div>
+          <div class="record-actions">
+            <a class="action-btn edit" href="/users/edit/<%= user.app_user_id %>"><i class="bi bi-pencil-square"></i> Edit</a>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

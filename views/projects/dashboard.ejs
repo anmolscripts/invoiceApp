@@ -1,0 +1,66 @@
+<%- include("../partials/layout-start", { title: project.project_name, bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-kanban"></i> <%= project.project_no || project.project_code %></span>
+        <h1><%= project.project_name %></h1>
+        <p><%= project.client?.client_name || "No client linked" %> | <%= project.status %> | <%= [project.city, project.state].filter(Boolean).join(", ") || "No location" %></p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <% if (canCreate) { %><a class="hero-btn primary" href="/add"><i class="bi bi-plus-circle-fill"></i> New Invoice</a><% } %>
+          <% if (canEdit) { %><a class="hero-btn secondary" href="/projects/edit/<%= project.project_id %>"><i class="bi bi-pencil-square"></i> Edit Project</a><% } %>
+          <a class="hero-btn secondary" href="/history?entity=Project&field=project_no&operator=equals&value=<%= encodeURIComponent(project.project_no || project.project_code || '') %>"><i class="bi bi-clock-history"></i> History</a>
+          <a class="hero-btn secondary" href="/projects"><i class="bi bi-arrow-left-circle"></i> Back</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card"><div class="summary-label"><span>Quotations</span><span class="summary-icon"><i class="bi bi-file-earmark-text"></i></span></div><h2 class="text-secondary"><%= stats.quotationCount %></h2><p>Quotations for this project.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Invoices</span><span class="summary-icon"><i class="bi bi-receipt"></i></span></div><h2 class="text-secondary"><%= stats.invoiceCount %></h2><p>Invoices for this project.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Total Value</span><span class="summary-icon"><i class="bi bi-cash-stack"></i></span></div><h2 class="text-secondary">&#8377; <%= rateConvert(stats.totalValue.toFixed(2)) %></h2><p>Total commercial value.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Budget</span><span class="summary-icon"><i class="bi bi-wallet2"></i></span></div><h2 class="text-secondary"><%= project.budget ? `₹ ${rateConvert(Number(project.budget).toFixed(2))}` : "-" %></h2><p>Configured project budget.</p></article>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="detail-grid">
+      <section class="detail-card">
+        <h4>Project Details</h4>
+        <div class="detail-list">
+          <div class="detail-line"><span>Client</span><strong><%= project.client?.client_name || "-" %></strong></div>
+          <div class="detail-line"><span>Project Type</span><strong><%= project.project_type || "-" %></strong></div>
+          <div class="detail-line"><span>Billing Cycle</span><strong><%= project.billing_cycle_type || "-" %></strong></div>
+          <div class="detail-line"><span>Next Billing</span><strong><%= project.billing_cycle_next_date ? formatDate(project.billing_cycle_next_date) : "-" %></strong></div>
+          <div class="detail-line"><span>Duration</span><strong><%= [project.start_date ? formatDate(project.start_date) : null, project.end_date ? formatDate(project.end_date) : null].filter(Boolean).join(" to ") || "-" %></strong></div>
+          <div class="detail-line"><span>Site Address</span><strong><%= project.site_address || "-" %></strong></div>
+          <div class="detail-line"><span>Description</span><strong><%= project.description || "-" %></strong></div>
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <h4>Linked Records</h4>
+        <% if (project.invoices.length) { %>
+        <div class="item-stack">
+          <% project.invoices.forEach((entry) => { %>
+          <div class="item-line">
+            <div>
+              <strong><%= entry.invoice_number %> - <%= entry.invoice_type || "Record" %></strong>
+              <small><%= formatDate(entry.invoice_date) %> | &#8377; <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></small>
+            </div>
+            <a class="action-btn view" href="/edit/<%= entry.invoice_id %>">Open</a>
+          </div>
+          <% }) %>
+        </div>
+        <% } else { %>
+        <p class="m-0 text-muted">No quotations or invoices linked yet.</p>
+        <% } %>
+      </section>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

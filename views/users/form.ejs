@@ -1,0 +1,119 @@
+<%- include("../partials/layout-start", { title: user ? "Edit User" : "Add User", bodyClass: "invoice-page" }) %>
+
+<main class="app-shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="hero-label"><i class="bi bi-person-badge-fill"></i> Employee Access</span>
+        <h1><%= user ? "Update employee details and access scope." : "Create an employee profile with module-based access." %></h1>
+        <p>Assign `admin`, `editor`, or `viewer`, and choose exactly which modules the user can see.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="top-btn primary" href="/users"><i class="bi bi-people-fill"></i> User List</a>
+          <a class="top-btn secondary" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="workbench">
+    <div class="panel-head">
+      <div>
+        <h2>User Form</h2>
+        <p>Generated user IDs and setup links are handled automatically after save.</p>
+      </div>
+      <% if (user?.user_code) { %>
+      <span class="doc-pill"><i class="bi bi-person-vcard"></i> <%= user.user_code %></span>
+      <% } %>
+    </div>
+
+    <% if (setupLink) { %>
+    <div class="detail-card mb-4">
+      <h4>Password Setup Link</h4>
+      <div class="field-card">
+        <label>Share This Link With User</label>
+        <input class="form-control" value="<%= setupLink %>" readonly />
+      </div>
+    </div>
+    <% } %>
+
+    <form method="post" action="/users/save" class="stack-form">
+      <% if (user) { %><input type="hidden" name="app_user_id" value="<%= user.app_user_id %>" /><% } %>
+      <div class="control-grid control-grid-wide">
+        <div class="field-card"><label>Name</label><input class="form-control" name="user_name" value="<%= user?.user_name || "" %>" required /></div>
+        <div class="field-card"><label>Phone Number</label><input class="form-control" name="phone_number" value="<%= user?.phone_number || "" %>" /></div>
+        <div class="field-card"><label>Email</label><input class="form-control" name="email" type="email" value="<%= user?.email || "" %>" /></div>
+        <div class="field-card"><label>DOB</label><input class="form-control" name="dob" type="date" value="<%= user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : "" %>" /></div>
+        <div class="field-card"><label>Father Name</label><input class="form-control" name="father_name" value="<%= user?.father_name || "" %>" /></div>
+        <div class="field-card"><label>Designation</label><input class="form-control" name="designation" value="<%= user?.designation || "" %>" /></div>
+        <div class="field-card">
+          <label>Role</label>
+          <select class="form-select" name="role">
+            <% ["admin", "editor", "viewer"].forEach((role) => { %>
+            <option value="<%= role %>" <%= (user?.role || "viewer") === role ? "selected" : "" %>><%= role %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="detail-grid compact-detail-grid">
+        <section class="detail-card">
+          <h4>Address</h4>
+          <div class="field-card"><label>Address</label><textarea class="form-control textarea-control tall-textarea" name="address"><%= user?.address || "" %></textarea></div>
+        </section>
+        <section class="detail-card">
+          <h4>Module Access</h4>
+          <div class="field-card mb-3">
+            <label class="d-flex align-items-center gap-2 m-0">
+              <input type="checkbox" id="selectAllModules" />
+              <span>Select All Modules</span>
+            </label>
+          </div>
+          <div class="history-grid">
+            <% const selectedModuleIds = new Set((user?.userModules || []).map((entry) => entry.module_id)); %>
+            <% modules.forEach((module) => { %>
+            <label class="history-line">
+              <span class="history-key"><%= module.module_name %></span>
+              <span class="history-value"><input type="checkbox" class="js-module-checkbox" name="module_ids" value="<%= module.module_id %>" <%= selectedModuleIds.has(module.module_id) ? "checked" : "" %> /> <%= module.module_path %></span>
+            </label>
+            <% }) %>
+          </div>
+        </section>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-right">
+          <a href="/users" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back</a>
+          <button type="submit" class="control-btn accent"><i class="bi bi-check2-circle"></i> Save User</button>
+        </div>
+      </div>
+    </form>
+  </section>
+</main>
+
+<script>
+  (() => {
+    const selectAll = document.getElementById("selectAllModules");
+    const checkboxes = Array.from(document.querySelectorAll(".js-module-checkbox"));
+    if (!selectAll || !checkboxes.length) return;
+
+    const syncHeader = () => {
+      selectAll.checked = checkboxes.every((checkbox) => checkbox.checked);
+    };
+
+    selectAll.addEventListener("change", () => {
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = selectAll.checked;
+      });
+    });
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", syncHeader);
+    });
+
+    syncHeader();
+  })();
+</script>
+
+<%- include("../partials/layout-end") %>

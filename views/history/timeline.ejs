@@ -1,0 +1,86 @@
+<%- include("../partials/layout-start", { title: "Timeline", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-clock-history"></i> Timeline</span>
+        <h1><%= tableName %> Record #<%= recordId %></h1>
+        <p>Start-to-current history for this record, including insert and all tracked changes.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/history"><i class="bi bi-clock-history"></i> Global History</a>
+          <a class="hero-btn secondary" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="records">
+      <% history.forEach((entry, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index"><strong>#<%= String(index + 1).padStart(2, "0") %></strong><span class="record-type invoice"><%= entry.action %></span></div>
+          <div class="record-title"><strong><%= tableName %></strong><span>Record #<%= recordId %></span></div>
+          <div class="record-cell"><small>Time</small><strong><%= formatDate(entry.created_at) %></strong></div>
+          <div class="record-actions"></div>
+        </div>
+        <div class="record-detail">
+          <div class="detail-card">
+            <div class="history-grid js-timeline-grid" data-action="<%= entry.action %>" data-payload="<%- JSON.stringify(entry.payload_json || '') %>"></div>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<script>
+  (() => {
+    const escapeHtml = (value) =>
+      String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const parsePayload = (value) => {
+      const raw = JSON.parse(value || "\"\"");
+      try {
+        return raw ? JSON.parse(raw) : {};
+      } catch (error) {
+        return { payload: raw };
+      }
+    };
+
+    document.querySelectorAll(".js-timeline-grid").forEach((grid) => {
+      const action = String(grid.dataset.action || "").toUpperCase();
+      const payload = parsePayload(grid.dataset.payload || "\"\"");
+      const entries = Object.entries(payload);
+      const badge = action.includes("UPDATE")
+        ? "Updated"
+        : action.includes("INSERT")
+          ? "Inserted"
+          : action.includes("DELETE")
+            ? "Deleted"
+            : "Captured";
+
+      grid.innerHTML = entries.length
+        ? entries
+            .map(([key, value]) => `
+              <div class="history-line ${action.includes("UPDATE") ? "changed" : ""}">
+                <div class="history-key">${escapeHtml(key)}<div class="history-badge">${badge}</div></div>
+                <div class="history-value">${escapeHtml(typeof value === "object" ? JSON.stringify(value, null, 2) : String(value ?? "-"))}</div>
+              </div>
+            `)
+            .join("")
+        : '<div class="history-line"><div class="history-key">No data</div><div class="history-value">No timeline payload stored for this action.</div></div>';
+    });
+  })();
+</script>
+
+<%- include("../partials/layout-end") %>

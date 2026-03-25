@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 
 const invoiceRoutes = require("./routes/invoiceRoutes");
+const authModel = require("./models/authModel");
 
 const app = express();
 
@@ -13,8 +14,8 @@ const AUTH_SECRET = "invoice-admin-secret";
 const signSession = (value) =>
   crypto.createHmac("sha256", AUTH_SECRET).update(value).digest("hex");
 
-const createSessionToken = () => {
-  const payload = `admin|${Date.now()}`;
+const createSessionToken = (userId) => {
+  const payload = `${userId}|${Date.now()}`;
   const signature = signSession(payload);
   return `${payload}|${signature}`;
 };
@@ -27,18 +28,20 @@ const parseCookies = (cookieHeader = "") =>
     return acc;
   }, {});
 
-const isValidSession = (token = "") => {
+const parseSession = (token = "") => {
   const parts = token.split("|");
-  if (parts.length !== 3) return false;
-  const [user, timestamp, signature] = parts;
-  if (user !== "admin" || !timestamp || !signature) return false;
-  return signSession(`${user}|${timestamp}`) === signature;
+  if (parts.length !== 3) return null;
+  const [userId, timestamp, signature] = parts;
+  if (!userId || !timestamp || !signature) return null;
+  return signSession(`${userId}|${timestamp}`) === signature
+    ? { userId: Number(userId) }
+    : null;
 };
 
-const setAuthCookie = (res) => {
+const setAuthCookie = (res, userId) => {
   res.setHeader(
     "Set-Cookie",
-    `${AUTH_COOKIE}=${encodeURIComponent(createSessionToken())}; Path=/; HttpOnly; SameSite=Lax`
+    `${AUTH_COOKIE}=${encodeURIComponent(createSessionToken(userId))}; Path=/; HttpOnly; SameSite=Lax`
   );
 };
 
@@ -51,6 +54,7 @@ const clearAuthCookie = (res) => {
 
 const isProtectedRoute = (pathname) => {
   if (pathname === "/login") return false;
+  if (pathname.startsWith("/setup-password")) return false;
   if (pathname === "/logout") return false;
   if (pathname.startsWith("/css/")) return false;
   if (pathname.startsWith("/js/")) return false;
@@ -58,20 +62,26 @@ const isProtectedRoute = (pathname) => {
   return true;
 };
 
-// View engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Middleware
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: "35mb" }));
+app.use(bodyParser.json({ limit: "35mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "35mb" }));
 app.use(express.static("public"));
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   const cookies = parseCookies(req.headers.cookie || "");
-  req.isAuthenticated = isValidSession(cookies[AUTH_COOKIE]);
-  req.setAuthCookie = () => setAuthCookie(res);
+  const session = parseSession(cookies[AUTH_COOKIE]);
+  req.currentUser = session?.userId ? await authModel.getUserById(session.userId) : null;
+  req.isAuthenticated = Boolean(req.currentUser);
+  req.setAuthCookie = (userId) => setAuthCookie(res, userId);
   req.clearAuthCookie = () => clearAuthCookie(res);
+
+  res.locals.currentUser = req.currentUser;
+  res.locals.canDelete = authModel.canDelete(req.currentUser);
+  res.locals.canEdit = authModel.canEdit(req.currentUser);
+  res.locals.canCreate = authModel.canCreate(req.currentUser);
 
   if (!req.isAuthenticated && isProtectedRoute(req.path)) {
     return res.redirect("/login");
@@ -81,13 +91,28 @@ app.use((req, res, next) => {
     return res.redirect("/");
   }
 
+  if (req.isAuthenticated && isProtectedRoute(req.path)) {
+    const moduleKey = authModel.getModuleKeyFromPath(req.path);
+    if (!authModel.canAccessModule(req.currentUser, moduleKey)) {
+      return res.status(403).send("You do not have access to this module");
+    }
+  }
+
   next();
 });
 
-// Routes
 app.use("/", invoiceRoutes);
 
-// Start server
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = Number(process.env.PORT || 3000);
+
+async function start() {
+  await authModel.ensureSystemBootstrap();
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+start().catch((error) => {
+  console.error("Unable to start server:", error);
+  process.exit(1);
 });

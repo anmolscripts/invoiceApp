@@ -1,0 +1,109 @@
+<%- include("../partials/layout-start", { title: client.client_name, bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-building"></i> <%= client.client_no || client.client_code %></span>
+        <h1><%= client.client_name %></h1>
+        <p><%= client.contact_person || "No contact person added" %> | <%= client.phone_number || "No phone number" %> | <%= client.email || "No email" %></p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <% if (canCreate) { %><a class="hero-btn primary" href="/projects/add"><i class="bi bi-plus-circle-fill"></i> Add Project</a><% } %>
+          <% if (canEdit) { %><a class="hero-btn secondary" href="/clients/edit/<%= client.client_id %>"><i class="bi bi-pencil-square"></i> Edit Client</a><% } %>
+          <a class="hero-btn secondary" href="/history?entity=Client&field=client_no&operator=equals&value=<%= encodeURIComponent(client.client_no || client.client_code || '') %>"><i class="bi bi-clock-history"></i> History</a>
+          <a class="hero-btn secondary" href="/clients"><i class="bi bi-arrow-left-circle"></i> Back</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card"><div class="summary-label"><span>Projects</span><span class="summary-icon"><i class="bi bi-kanban"></i></span></div><h2 class="text-secondary"><%= client.projects.length %></h2><p>Active linked projects.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Quotations</span><span class="summary-icon"><i class="bi bi-file-earmark-text"></i></span></div><h2 class="text-secondary"><%= stats.quotationCount %></h2><p>Quotation count for this client.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Invoices</span><span class="summary-icon"><i class="bi bi-receipt"></i></span></div><h2 class="text-secondary"><%= stats.invoiceCount %></h2><p>Invoice count for this client.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Total Value</span><span class="summary-icon"><i class="bi bi-cash-stack"></i></span></div><h2 class="text-secondary">&#8377; <%= rateConvert(stats.totalValue.toFixed(2)) %></h2><p>Total quotation and invoice value.</p></article>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="board-head">
+      <div class="board-title"><h3>Client Dashboard</h3><p>Projects and commercial records linked to this client.</p></div>
+    </div>
+
+    <div class="detail-grid">
+      <section class="detail-card">
+        <h4>Client Details</h4>
+        <div class="detail-list">
+          <div class="detail-line"><span>GSTIN</span><strong><%= client.gstin || "-" %></strong></div>
+          <div class="detail-line"><span>Billing Address</span><strong><%= client.billing_address || "-" %></strong></div>
+          <div class="detail-line"><span>Shipping Address</span><strong><%= client.shipping_address || "-" %></strong></div>
+          <div class="detail-line"><span>Location</span><strong><%= [client.city, client.state, client.country, client.postal_code].filter(Boolean).join(", ") || "-" %></strong></div>
+          <div class="detail-line"><span>Notes</span><strong><%= client.notes || "-" %></strong></div>
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <h4>Projects</h4>
+        <% if (client.projects.length) { %>
+        <div class="item-stack">
+          <% client.projects.forEach((project) => { %>
+          <div class="item-line">
+            <div>
+              <strong><%= project.project_name %></strong>
+              <small><%= project.status %> | <%= project._count.invoices %> records</small>
+            </div>
+            <a class="action-btn view" href="/projects/<%= project.project_id %>">Open</a>
+          </div>
+          <% }) %>
+        </div>
+        <% } else { %>
+        <p class="m-0 text-muted">No projects added for this client yet.</p>
+        <% } %>
+      </section>
+    </div>
+
+    <div class="records mt-4">
+      <% if (!client.invoices.length) { %>
+      <div class="empty-state">
+        <i class="bi bi-receipt"></i>
+        <h4>No linked records yet</h4>
+        <p>Create a quotation or invoice against one of this client’s projects.</p>
+      </div>
+      <% } %>
+
+      <% client.invoices.forEach((entry, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(index + 1).padStart(2, "0") %></strong>
+            <span class="record-type <%= (entry.invoice_type || 'record').toLowerCase() %>"><%= entry.invoice_type || "Record" %></span>
+          </div>
+          <div class="record-title">
+            <strong><%= entry.project?.project_name || entry.client_name %></strong>
+            <span><%= entry.invoice_number %></span>
+          </div>
+          <div class="record-cell">
+            <small>Date</small>
+            <strong><%= formatDate(entry.invoice_date) %></strong>
+          </div>
+          <div class="record-cell">
+            <small>Project</small>
+            <strong><%= entry.project?.project_code || "-" %></strong>
+          </div>
+          <div class="record-amount">
+            <small class="d-block text-muted text-center">Grand Total</small>
+            <strong>&#8377; <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></strong>
+          </div>
+          <div class="record-actions">
+            <% if (entry.project_id) { %><a class="action-btn view" href="/projects/<%= entry.project_id %>"><i class="bi bi-kanban"></i> Project</a><% } %>
+            <% if (canEdit) { %><a class="action-btn edit" href="/edit/<%= entry.invoice_id %>"><i class="bi bi-pencil-square"></i> Edit</a><% } %>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

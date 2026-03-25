@@ -1,5 +1,7 @@
 <%
 const record = typeof invoice !== "undefined" ? invoice : null;
+const selectedClientId = record?.client_id || record?.project?.client_id || null;
+const selectedProjectId = record?.project_id || null;
 %>
 <%- include("partials/layout-start", { title: record ? "Edit Record" : "Create Record", bodyClass: "invoice-page" }) %>
 
@@ -7,14 +9,16 @@ const record = typeof invoice !== "undefined" ? invoice : null;
   <section class="hero-panel">
     <div class="row g-4 align-items-end">
       <div class="col-lg-8">
-        <span class="hero-label"><i class="bi bi-stars"></i> Premium Workspace</span>
-        <h1><%= record ? "Edit invoice or quotation with full detail control." : "Create polished invoices and quotations faster." %></h1>
-        <p>Use the same premium workspace for new records and edits. Line items, GST, round-off, totals, and print-ready output stay in one clean flow.</p>
+        <span class="hero-label"><i class="bi bi-diagram-3-fill"></i> Connected Billing</span>
+        <h1><%= record ? "Edit linked invoice or quotation with client and project context." : "Create invoices and quotations that stay tied to clients and projects." %></h1>
+        <p>Each document now belongs to a client and project flow, so billing, quotations, and tracking stay connected from one place.</p>
       </div>
       <div class="col-lg-4">
         <div class="hero-actions">
-          <a class="top-btn primary" href="/"><i class="bi bi-grid-1x2-fill"></i> Open Register</a>
-          <a class="top-btn secondary" href="/add"><i class="bi bi-plus-circle-fill"></i> New Record</a>
+          <a class="top-btn primary" href="/"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+          <a class="top-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+          <a class="top-btn secondary" href="/clients"><i class="bi bi-people-fill"></i> Clients</a>
+          <a class="top-btn secondary" href="/projects"><i class="bi bi-kanban-fill"></i> Projects</a>
           <a class="top-btn secondary" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>
       </div>
@@ -27,7 +31,7 @@ const record = typeof invoice !== "undefined" ? invoice : null;
           <span class="metric-icon"><i class="bi bi-pencil-square"></i></span>
         </div>
         <div class="metric-value text-secondary" id="metricMode"><%= record ? "Edit" : "Create" %></div>
-        <p><%= record ? "This record will be updated in place." : "A new record will be created." %></p>
+        <p><%= record ? "This linked record will be updated in place." : "A fresh document will be created under a project." %></p>
       </article>
       <article class="metric-card">
         <div class="metric-head">
@@ -35,15 +39,15 @@ const record = typeof invoice !== "undefined" ? invoice : null;
           <span class="metric-icon"><i class="bi bi-upc-scan"></i></span>
         </div>
         <div class="metric-value text-secondary" id="metricNumber"><%= record?.invoice_number || "Auto" %></div>
-        <p>Auto-generated for new records and preserved on update.</p>
+        <p>Generated automatically for new records and preserved on updates.</p>
       </article>
       <article class="metric-card">
         <div class="metric-head">
-          <span>Items</span>
-          <span class="metric-icon"><i class="bi bi-box-seam"></i></span>
+          <span>Linked Project</span>
+          <span class="metric-icon"><i class="bi bi-kanban"></i></span>
         </div>
-        <div class="metric-value text-secondary" id="metricItems"><%= record?.items?.length || 0 %></div>
-        <p>Live item count based on active rows in the sheet.</p>
+        <div class="metric-value text-secondary metric-small" id="metricProject"><%= record?.project?.project_name || "Choose" %></div>
+        <p>Project tracking now flows directly into invoices and quotations.</p>
       </article>
       <article class="metric-card">
         <div class="metric-head">
@@ -51,7 +55,7 @@ const record = typeof invoice !== "undefined" ? invoice : null;
           <span class="metric-icon"><i class="bi bi-cash-stack"></i></span>
         </div>
         <div class="metric-value text-secondary" id="metricGrandTotal">&#8377; 0.00</div>
-        <p>Calculated live with GST and round-off.</p>
+        <p>Live calculated total with GST and round-off.</p>
       </article>
     </div>
   </section>
@@ -60,7 +64,7 @@ const record = typeof invoice !== "undefined" ? invoice : null;
     <div class="panel-head">
       <div>
         <h2>Document Builder</h2>
-        <p>The layout now matches the new listing page and supports both create and update actions.</p>
+        <p>Choose the client and project first, then build the bill with a consistent connected flow.</p>
       </div>
       <span class="doc-pill"><i class="bi bi-file-earmark-text"></i> <span id="docTypeBadge"><%= record?.invoice_type || "Invoice Type" %></span></span>
     </div>
@@ -71,14 +75,14 @@ const record = typeof invoice !== "undefined" ? invoice : null;
           <div class="col-lg-7">
             <div class="brand-card">
               <img src="/img/logo.svg" alt="Logo" class="img-fluid" />
-              <p class="mb-0 mt-3">Spl. In: Multi Manifold Gas bank, PNG, LPG, Pipeline Installation. M/S, S/S, Copper, Fire Fitting, Leak Detector (LOT).</p>
+              <p class="mb-0 mt-3">Track invoices, quotations, clients, and projects through one connected operating workspace.</p>
             </div>
           </div>
           <div class="col-lg-5">
             <div class="brand-card">
               <ul class="contact-stack">
-                <li><i class="bi bi-telephone-fill"></i> 9810186087</li>
-                <li><i class="bi bi-telephone-fill"></i> 8383045705</li>
+                <li><i class="bi bi-buildings"></i> <span id="headerClientLabel"><%= record?.client?.client_name || record?.project?.client?.client_name || "Select client" %></span></li>
+                <li><i class="bi bi-kanban"></i> <span id="headerProjectLabel"><%= record?.project?.project_name || "Select project" %></span></li>
                 <li><i class="bi bi-calendar2-week"></i> <span id="headerDateLabel"><%= record ? new Date(record.invoice_date).toISOString().slice(0, 10) : "Select date" %></span></li>
                 <li><i class="bi bi-receipt-cutoff"></i> <span id="headerNumberLabel"><%= record?.invoice_number || "Will generate after save" %></span></li>
               </ul>
@@ -88,22 +92,42 @@ const record = typeof invoice !== "undefined" ? invoice : null;
       </div>
 
       <div class="sheet-body">
-        <div class="control-grid">
+        <div class="control-grid control-grid-wide">
           <div class="field-card">
             <label for="invoiceType">Document Type</label>
             <select id="invoiceType" class="form-select __InvoiceType">
               <option value="">Invoice Type</option>
               <option value="Invoice">Invoice</option>
               <option value="Quotation">Quotation</option>
+              <option value="Debit Note">Debit Note</option>
+              <option value="Credit Note">Credit Note</option>
             </select>
           </div>
           <div class="field-card">
-            <label for="siteTitle">Client / Site Name</label>
-            <input id="siteTitle" type="text" class="form-control __SiteTitle" placeholder="Site Name" />
+            <label for="clientSelect">Client</label>
+            <select id="clientSelect" class="form-select __ClientSelect">
+              <option value="">Select client</option>
+              <% clients.forEach((client) => { %>
+              <option value="<%= client.client_id %>" <%= Number(selectedClientId) === client.client_id ? "selected" : "" %>><%= client.client_name %> (<%= client.client_no || client.client_code %>)</option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="field-card">
+            <label for="projectSelect">Project</label>
+            <select id="projectSelect" class="form-select __ProjectSelect">
+              <option value="">Select project</option>
+              <% projects.forEach((project) => { %>
+              <option value="<%= project.project_id %>" data-client-id="<%= project.client_id %>" <%= Number(selectedProjectId) === project.project_id ? "selected" : "" %>><%= project.project_name %> (<%= project.project_no || project.project_code %>)</option>
+              <% }) %>
+            </select>
           </div>
           <div class="field-card">
             <label for="invoiceDate">Invoice Date</label>
             <input id="invoiceDate" type="date" class="form-control __InvoiceDate" />
+          </div>
+          <div class="field-card">
+            <label for="siteTitle">Project / Site Title</label>
+            <input id="siteTitle" type="text" class="form-control __SiteTitle" placeholder="Project name or site title" />
           </div>
           <div class="field-card">
             <label for="gstSelect">GST Profile</label>
@@ -113,6 +137,48 @@ const record = typeof invoice !== "undefined" ? invoice : null;
               <% }) %>
             </select>
           </div>
+          <div class="field-card">
+            <label for="invoiceTags">Tags</label>
+            <input id="invoiceTags" type="text" class="form-control __Tags" placeholder="AMC, urgent, hospital" value="<%= record?.tags || "" %>" />
+          </div>
+        </div>
+
+        <div class="detail-grid compact-detail-grid mb-4">
+          <section class="detail-card">
+            <h4>Client Snapshot</h4>
+            <div class="detail-list">
+              <div class="detail-line">
+                <span>Client Name</span>
+                <strong id="clientPreviewName"><%= record?.client?.client_name || record?.project?.client?.client_name || "-" %></strong>
+              </div>
+              <div class="detail-line">
+                <span>Contact</span>
+                <strong id="clientPreviewPhone"><%= record?.client?.phone_number || record?.project?.client?.phone_number || "-" %></strong>
+              </div>
+              <div class="detail-line">
+                <span>Billing Address</span>
+                <strong id="clientPreviewAddress"><%= record?.client?.billing_address || record?.project?.client?.billing_address || "-" %></strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-card">
+            <h4>Project Snapshot</h4>
+            <div class="detail-list">
+              <div class="detail-line">
+                <span>Project Code</span>
+                <strong id="projectPreviewCode"><%= record?.project?.project_no || record?.project?.project_code || "-" %></strong>
+              </div>
+              <div class="detail-line">
+                <span>Status</span>
+                <strong id="projectPreviewStatus"><%= record?.project?.status || "-" %></strong>
+              </div>
+              <div class="detail-line">
+                <span>Site Address</span>
+                <strong id="projectPreviewAddress"><%= record?.project?.site_address || "-" %></strong>
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="invoice-table-wrap">
@@ -136,8 +202,8 @@ const record = typeof invoice !== "undefined" ? invoice : null;
 
         <div class="totals-board">
           <section class="note-box">
-            <h5 class="fw-bold mb-2">Quick Notes</h5>
-            <p class="empty-message mb-3">Add or edit rows, then use save or update. On edit mode, the existing record is replaced with the latest table data.</p>
+            <h5 class="fw-bold mb-2">Connected Flow</h5>
+            <p class="empty-message mb-3">Pick a client and project before saving. That keeps every invoice number traceable back to the full project and client record.</p>
             <button type="button" class="control-btn soft" id="addRowBtn"><i class="bi bi-plus-lg"></i> Add Item Row</button>
           </section>
 
@@ -173,7 +239,7 @@ const record = typeof invoice !== "undefined" ? invoice : null;
             <button type="button" class="control-btn soft" id="printBtn"><i class="bi bi-printer"></i> Print Preview</button>
           </div>
           <div class="action-right">
-            <a href="/" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back to Register</a>
+            <a href="/invoices" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back to Register</a>
             <button type="button" class="control-btn accent __SaveBtn"><i class="bi bi-check2-circle"></i> <span id="saveBtnLabel"><%= record ? "Update Record" : "Save Record" %></span></button>
           </div>
         </div>
@@ -186,6 +252,8 @@ const record = typeof invoice !== "undefined" ? invoice : null;
 
 <script>
   const GST = JSON.parse(`<%- JSON.stringify(gst) %>`);
+  const CLIENTS = JSON.parse(`<%- JSON.stringify(clients) %>`);
+  const PROJECTS = JSON.parse(`<%- JSON.stringify(projects || []) %>`);
   const INVOICE_DATA = <%- JSON.stringify(record || null) %>;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -1,0 +1,133 @@
+<%- include("../partials/layout-start", { title: "Clients", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-people-fill"></i> Client System</span>
+        <h1>Client listing with connected projects, quotations, and invoices.</h1>
+        <p>Manage client records centrally, then drill into dashboards that summarize every linked commercial activity.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <% if (canCreate) { %>
+          <a class="hero-btn primary" href="/clients/add"><i class="bi bi-person-plus-fill"></i> Add Client</a>
+          <% } %>
+          <a class="hero-btn secondary" href="/projects"><i class="bi bi-kanban-fill"></i> Projects</a>
+          <a class="hero-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card">
+        <div class="summary-label"><span>Total Clients</span><span class="summary-icon"><i class="bi bi-buildings"></i></span></div>
+        <h2 class="text-secondary"><%= stats.totalClients %></h2>
+        <p>All active client records.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label"><span>Projects</span><span class="summary-icon"><i class="bi bi-kanban"></i></span></div>
+        <h2 class="text-secondary"><%= stats.totalProjects %></h2>
+        <p>Projects connected to these clients.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label"><span>Invoices</span><span class="summary-icon"><i class="bi bi-receipt-cutoff"></i></span></div>
+        <h2 class="text-secondary"><%= stats.totalInvoices %></h2>
+        <p>Billing records already linked.</p>
+      </article>
+      <article class="summary-card">
+        <div class="summary-label"><span>Coverage</span><span class="summary-icon"><i class="bi bi-diagram-3"></i></span></div>
+        <h2 class="text-secondary"><%= stats.totalClients ? Math.round((stats.totalProjects / stats.totalClients) * 10) / 10 : 0 %></h2>
+        <p>Average projects per client.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="board-head">
+      <div class="board-title">
+        <h3>Client Directory</h3>
+        <p>Open any client to see project, quotation, and invoice figures on one dashboard.</p>
+      </div>
+    </div>
+
+    <div class="records">
+      <% if (!clients.length) { %>
+      <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <h4>No clients added</h4>
+        <p>Create your first client to start linking projects and invoices.</p>
+      </div>
+      <% } %>
+
+      <% clients.forEach((client, index) => { %>
+      <article class="record-row">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(index + 1).padStart(2, "0") %></strong>
+            <span class="record-type invoice"><%= client.client_no || client.client_code %></span>
+          </div>
+
+          <div class="record-title">
+            <strong><%= client.client_name %></strong>
+            <span><%= client.contact_person || "No contact person" %></span>
+          </div>
+
+          <div class="record-cell">
+            <small>Phone</small>
+            <strong><%= client.phone_number || "-" %></strong>
+          </div>
+
+          <div class="record-cell">
+            <small>Email</small>
+            <strong><%= client.email || "-" %></strong>
+          </div>
+
+          <div class="record-amount">
+            <small class="d-block text-muted text-center">Projects / Invoices</small>
+            <strong><%= client._count.projects %> / <%= client._count.invoices %></strong>
+          </div>
+
+          <div class="record-actions">
+            <a class="action-btn view" href="/clients/<%= client.client_id %>"><i class="bi bi-bar-chart"></i> Dashboard</a>
+            <% if (canEdit) { %><a class="action-btn edit" href="/clients/edit/<%= client.client_id %>"><i class="bi bi-pencil-square"></i> Edit</a><% } %>
+          </div>
+        </div>
+
+        <div class="record-detail" style="display:block;">
+          <div class="detail-grid pt-3">
+            <section class="detail-card">
+              <h4>Client Details</h4>
+              <div class="detail-list">
+                <div class="detail-line"><span>GSTIN</span><strong><%= client.gstin || "-" %></strong></div>
+                <div class="detail-line"><span>City / State</span><strong><%= [client.city, client.state].filter(Boolean).join(", ") || "-" %></strong></div>
+                <div class="detail-line"><span>Billing Address</span><strong><%= client.billing_address || "-" %></strong></div>
+              </div>
+            </section>
+            <section class="detail-card">
+              <h4>Recent Projects</h4>
+              <% if (client.projects.length) { %>
+              <div class="item-stack">
+                <% client.projects.forEach((project) => { %>
+                <div class="item-line">
+                  <div>
+                    <strong><%= project.project_name %></strong>
+                    <small><%= project.status %></small>
+                  </div>
+                  <a class="action-btn view" href="/projects/<%= project.project_id %>">Open</a>
+                </div>
+                <% }) %>
+              </div>
+              <% } else { %>
+              <p class="m-0 text-muted">No projects connected yet.</p>
+              <% } %>
+            </section>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

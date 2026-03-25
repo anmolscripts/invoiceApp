@@ -1,0 +1,200 @@
+<%- include("../partials/layout-start", { title: "History", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-clock-history"></i> Activity History</span>
+        <h1>System-wide action log for inserts, updates, deletes, and settlement actions.</h1>
+        <p>This timeline is the audit trail for future tracking across the main operational tables.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+          <a class="hero-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="board">
+    <form class="stack-form mb-4" method="get" action="/history">
+      <div class="control-grid control-grid-wide">
+        <div class="field-card">
+          <label>Data Type</label>
+          <select class="form-select" id="historyEntity" name="entity">
+            <option value="">All</option>
+            <% Object.keys(historyConfig || {}).forEach((entity) => { %>
+            <option value="<%= entity %>" <%= filters?.entity === entity ? "selected" : "" %>><%= entity %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-card">
+          <label>Header / Field</label>
+          <select class="form-select" id="historyField" name="field"></select>
+        </div>
+        <div class="field-card">
+          <label>Condition</label>
+          <select class="form-select" name="operator" id="historyOperator">
+            <% [["contains","Contains"],["equals","Equal To"],["gt","Greater Than"],["lt","Smaller Than"],["not","Not"]].forEach(([value,label]) => { %>
+            <option value="<%= value %>" <%= (filters?.operator || "contains") === value ? "selected" : "" %>><%= label %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-card">
+          <label>Query Value</label>
+          <input class="form-control" name="value" value="<%= filters?.value || "" %>" placeholder="Enter search value" />
+        </div>
+        <div class="field-card d-flex align-items-end">
+          <button class="control-btn accent w-100 justify-content-center" type="submit"><i class="bi bi-search"></i> Search</button>
+        </div>
+      </div>
+    </form>
+
+    <% if (searchResults?.length) { %>
+    <div class="records mb-4">
+      <% searchResults.forEach((result, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index"><strong>#<%= String(index + 1).padStart(2, "0") %></strong><span class="record-type invoice"><%= result.entity %></span></div>
+          <div class="record-title"><strong><%= result.title %></strong><span><%= result.subtitle %></span></div>
+          <div class="record-actions"><a class="action-btn view" href="/timeline/<%= result.entity %>/<%= result.recordId %>"><i class="bi bi-clock-history"></i> Timeline</a></div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <div class="records">
+      <% if (!history.length) { %>
+      <div class="empty-state"><i class="bi bi-clock-history"></i><h4>No history found</h4><p>Actions will appear here as the system is used.</p></div>
+      <% } %>
+      <% history.forEach((entry, index) => { %>
+      <article class="record-row">
+        <div class="record-main js-history-toggle" data-history-toggle data-target="history-detail-<%= entry.history_id %>">
+          <div class="record-index"><strong>#<%= String(index + 1).padStart(2, "0") %></strong><span class="record-type invoice"><%= entry.table_name %></span></div>
+          <div class="record-title"><strong><%= entry.action %></strong><span>Record #<%= entry.record_id %></span></div>
+          <div class="record-cell"><small>Created</small><strong><%= formatDate(entry.created_at) %></strong></div>
+          <div class="record-cell"><small>Links</small><strong><%= [entry.invoice_id ? `Invoice ${entry.invoice_id}` : null, entry.project_id ? `Project ${entry.project_id}` : null, entry.settlement_id ? `Settlement ${entry.settlement_id}` : null].filter(Boolean).join(" | ") || "-" %></strong></div>
+          <div class="record-actions">
+            <a class="action-btn view" href="/timeline/<%= entry.table_name %>/<%= entry.record_id %>"><i class="bi bi-clock-history"></i> Timeline</a>
+            <button class="action-btn view" type="button">Details</button>
+          </div>
+        </div>
+        <div class="record-detail" id="history-detail-<%= entry.history_id %>">
+          <div class="detail-grid">
+            <section class="detail-card">
+              <h4><%= entry.action.toUpperCase().includes("INSERT") ? "Added Data" : entry.action.toUpperCase().includes("UPDATE") ? "Updated Data" : entry.action.toUpperCase().includes("DELETE") ? "Deleted Data" : "Tracked Fields" %></h4>
+              <div class="history-grid js-history-grid" data-action="<%= entry.action %>" data-payload="<%- JSON.stringify(entry.payload_json || '') %>"></div>
+            </section>
+            <section class="detail-card">
+              <h4>All Captured Data</h4>
+              <div class="history-grid js-history-snapshot" data-payload="<%- JSON.stringify(entry.payload_json || '') %>"></div>
+            </section>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<script>
+  (() => {
+    const escapeHtml = (value) =>
+      String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const formatValue = (value) => {
+      if (value === null || value === undefined || value === "") return "-";
+      if (typeof value === "object") return JSON.stringify(value, null, 2);
+      return String(value);
+    };
+
+    document.querySelectorAll("[data-history-toggle]").forEach((trigger) => {
+      trigger.addEventListener("click", () => {
+        const row = trigger.closest(".record-row");
+        row.classList.toggle("expanded");
+      });
+    });
+
+    const parsePayload = (value) => {
+      const raw = JSON.parse(value || "\"\"");
+      try {
+        return raw ? JSON.parse(raw) : {};
+      } catch (error) {
+        return { payload: raw };
+      }
+    };
+
+    const renderGrid = (grid, action = "") => {
+      const payload = parsePayload(grid.dataset.payload || "\"\"");
+      const normalizedPayload =
+        payload && typeof payload.updated_fields === "object" && payload.updated_fields !== null
+          ? payload.updated_fields
+          : payload;
+      const entries = Object.entries(normalizedPayload || {});
+
+      if (!entries.length) {
+        grid.innerHTML = '<div class="history-line"><div class="history-key">No field snapshot</div><div class="history-value">This action did not store detailed field data.</div></div>';
+        return;
+      }
+
+      const upperAction = String(action || "").toUpperCase();
+      const badgeLabel = upperAction.includes("UPDATE")
+        ? "Updated"
+        : upperAction.includes("INSERT")
+          ? "Inserted"
+          : upperAction.includes("DELETE")
+            ? "Deleted"
+            : "Captured";
+
+      grid.innerHTML = entries
+        .map(([key, value]) => `
+          <div class="history-line ${upperAction.includes("UPDATE") ? "changed" : ""}">
+            <div class="history-key">
+              ${escapeHtml(key)}
+              ${action ? `<div class="history-badge">${badgeLabel}</div>` : ""}
+            </div>
+            <div class="history-value">${escapeHtml(formatValue(value))}</div>
+          </div>
+        `)
+        .join("");
+    };
+
+    document.querySelectorAll(".js-history-grid").forEach((grid) => {
+      renderGrid(grid, grid.dataset.action || "");
+    });
+
+    document.querySelectorAll(".js-history-snapshot").forEach((grid) => {
+      renderGrid(grid);
+    });
+
+    const historyConfig = <%- JSON.stringify(historyConfig || {}) %>;
+    const entitySelect = document.getElementById("historyEntity");
+    const fieldSelect = document.getElementById("historyField");
+    const selectedField = <%- JSON.stringify(filters?.field || "") %>;
+
+    const renderFieldOptions = () => {
+      const entity = entitySelect.value;
+      const fields = entity && historyConfig[entity] ? historyConfig[entity].fields : [];
+      fieldSelect.innerHTML = '<option value="">Select field</option>';
+      fields.forEach((field) => {
+        const option = document.createElement("option");
+        option.value = field;
+        option.textContent = field;
+        option.selected = field === selectedField;
+        fieldSelect.appendChild(option);
+      });
+    };
+
+    entitySelect?.addEventListener("change", renderFieldOptions);
+    renderFieldOptions();
+  })();
+</script>
+
+<%- include("../partials/layout-end") %>

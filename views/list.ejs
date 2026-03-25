@@ -4,14 +4,21 @@
   <section class="hero-panel">
     <div class="row g-4 align-items-end position-relative">
       <div class="col-lg-8 hero-copy">
-        <span class="eyebrow"><i class="bi bi-grid-1x2-fill"></i> Premium Register</span>
-        <h1>Invoice and quotation listing in one clean workspace.</h1>
-        <p>Track every record with fast search, quick filters, GST visibility, item previews, and full detail expansion from the same page.</p>
+        <span class="eyebrow"><i class="bi bi-grid-1x2-fill"></i> Billing Register</span>
+        <h1>Invoices and quotations with direct client and project tracking.</h1>
+        <p>Every record now sits inside a connected client and project structure, so one invoice number can lead you straight to the full business context.</p>
       </div>
       <div class="col-lg-4">
         <div class="hero-actions">
+          <% if (canCreate) { %>
           <a class="hero-btn primary" href="/add"><i class="bi bi-plus-circle-fill"></i> Create New</a>
-          <a class="hero-btn secondary" href="#recordBoard"><i class="bi bi-arrow-down-circle"></i> Browse Records</a>
+          <% } %>
+          <% if (canEdit) { %>
+          <a class="hero-btn secondary" href="/settlements"><i class="bi bi-wallet2"></i> Settlements</a>
+          <% } %>
+          <a class="hero-btn secondary" href="/finance"><i class="bi bi-graph-up-arrow"></i> Finance</a>
+          <a class="hero-btn secondary" href="/clients"><i class="bi bi-people-fill"></i> Clients</a>
+          <a class="hero-btn secondary" href="/projects"><i class="bi bi-kanban-fill"></i> Projects</a>
           <a class="hero-btn secondary" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>
       </div>
@@ -24,7 +31,7 @@
           <span class="summary-icon"><i class="bi bi-files"></i></span>
         </div>
         <h2 class="text-secondary" id="summaryTotalRecords"><%= stats.totalRecords %></h2>
-        <p>All active entries on this register page.</p>
+        <p>All active invoices and quotations in the register.</p>
       </article>
       <article class="summary-card">
         <div class="summary-label">
@@ -32,7 +39,7 @@
           <span class="summary-icon"><i class="bi bi-receipt"></i></span>
         </div>
         <h2 id="summaryInvoiceCount" class="text-secondary"><%= stats.invoiceCount %></h2>
-        <p>Invoices ready to review or edit.</p>
+        <p>Final billing records linked to projects.</p>
       </article>
       <article class="summary-card">
         <div class="summary-label">
@@ -40,15 +47,15 @@
           <span class="summary-icon"><i class="bi bi-file-earmark-text"></i></span>
         </div>
         <h2 id="summaryQuotationCount" class="text-secondary"><%= stats.quotationCount %></h2>
-        <p>Quotation records visible in the same stream.</p>
+        <p>Proposal records in the same connected stream.</p>
       </article>
       <article class="summary-card">
         <div class="summary-label">
           <span>Total Value</span>
           <span class="summary-icon"><i class="bi bi-cash-stack"></i></span>
         </div>
-        <h2 id="summaryTotalValue" class="text-secondary">₹ <%= rateConvert(stats.totalValue.toFixed(2)) %></h2>
-        <p>Combined gross value across visible records.</p>
+        <h2 id="summaryTotalValue" class="text-secondary">&#8377; <%= rateConvert(stats.totalValue.toFixed(2)) %></h2>
+        <p>Combined visible gross value across all records.</p>
       </article>
     </div>
   </section>
@@ -57,13 +64,13 @@
     <div class="board-head">
       <div class="board-title">
         <h3>Register Overview</h3>
-        <p>Search by client, number, GST, type, settle status, or item name.</p>
+        <p>Search by invoice number, client, project, GST, item, or document type.</p>
       </div>
 
       <div class="toolbar">
         <div class="search-box shadow-sm rounded-4">
           <i class="bi bi-search"></i>
-          <input type="search" id="listSearch" placeholder="Search invoice number, client, item, GST..." />
+          <input type="search" id="listSearch" placeholder="Search invoice number, client, project, GST..." />
         </div>
         <div class="filter-group">
           <button class="filter-chip active" type="button" data-filter="all">All</button>
@@ -76,7 +83,7 @@
 
     <div class="list-meta">
       <span id="visibleCount"><%= stats.totalRecords %> records showing</span>
-      <span>Click "Details" on any row to see GST, round-off, item lines, and status.</span>
+      <span>Open details on any row to jump into linked project and client context.</span>
     </div>
 
     <div class="records" id="recordsList">
@@ -84,11 +91,11 @@
       <div class="empty-state">
         <i class="bi bi-journal-x"></i>
         <h4>No records found</h4>
-        <p>Create your first invoice or quotation to start filling this register.</p>
+        <p>Create your first client, project, and invoice to start the connected workflow.</p>
       </div>
       <% } %>
 
-      <% invoice.forEach((entry, i) => { 
+      <% invoice.forEach((entry, i) => {
         const entryType = (entry.invoice_type || "Record").trim() || "Record";
         const entryTypeClass = entryType.toLowerCase();
         const settleValue = (entry.settle || "Pending").toString().trim();
@@ -97,7 +104,8 @@
         const searchText = [
           entry.invoice_number,
           entryType,
-          entry.client_name,
+          entry.client?.client_name || entry.project?.client?.client_name || "",
+          entry.project?.project_name || "",
           settleValue,
           entry.gst?.GST_DESCRIPTION || "",
           itemNames
@@ -107,12 +115,12 @@
         <div class="record-main">
           <div class="record-index">
             <strong>#<%= String(i + 1).padStart(2, "0") %></strong>
-            <span class="record-type <%= entryTypeClass %>"><%= entryType %></span>
+            <span class="record-type <%= entryTypeClass.replace(/\s+/g, '-') %>"><%= entryType %></span>
           </div>
 
           <div class="record-title">
-            <strong><%= entry.client_name || "Unnamed Client" %></strong>
-            <span><%= entry.invoice_number %></span>
+            <strong><%= entry.project?.project_name || entry.client_name || "Unnamed Project" %></strong>
+            <span><%= entry.invoice_number %> | <%= entry.client?.client_name || entry.project?.client?.client_name || "No Client" %></span>
           </div>
 
           <div class="record-cell">
@@ -127,7 +135,7 @@
 
           <div class="record-amount">
             <small class="d-block text-muted text-center">Grand Total</small>
-            <strong>₹ <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></strong>
+            <strong>&#8377; <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></strong>
           </div>
 
           <div class="record-actions">
@@ -139,24 +147,48 @@
               <i class="bi bi-arrow-repeat"></i> Convert
             </a>
             <% } %>
+            <% if (entry.project_id) { %>
+            <a class="action-btn view" href="/projects/<%= entry.project_id %>">
+              <i class="bi bi-kanban"></i> Project
+            </a>
+            <% } %>
+            <% if (canEdit && ["invoice", "debit note", "credit note"].includes(entryTypeClass)) { %>
+            <a class="action-btn view" href="/settlements/<%= entry.invoice_id %>">
+              <i class="bi bi-wallet2"></i> Settle
+            </a>
+            <% } %>
+            <% if (entry.client_id) { %>
+            <a class="action-btn view" href="/clients/<%= entry.client_id %>">
+              <i class="bi bi-building"></i> Client
+            </a>
+            <% } %>
+            <a class="action-btn view" href="/history?entity=Invoice&field=invoice_number&operator=equals&value=<%= encodeURIComponent(entry.invoice_number) %>">
+              <i class="bi bi-clock-history"></i> History
+            </a>
+            <% if (canEdit) { %>
             <a class="action-btn edit" href="/edit/<%= entry.invoice_id %>">
               <i class="bi bi-pencil-square"></i> Edit
             </a>
+            <% } %>
           </div>
         </div>
 
         <div class="record-detail">
           <div class="detail-grid">
             <section class="detail-card">
-              <h4>Record Details</h4>
+              <h4>Linked Details</h4>
               <div class="detail-list">
                 <div class="detail-line">
                   <span>Client</span>
-                  <strong><%= entry.client_name || "-" %></strong>
+                  <strong><%= entry.client?.client_name || entry.project?.client?.client_name || "-" %></strong>
                 </div>
                 <div class="detail-line">
-                  <span>Type</span>
-                  <strong><%= entryType %></strong>
+                  <span>Project</span>
+                  <strong><%= entry.project?.project_name || "-" %></strong>
+                </div>
+                <div class="detail-line">
+                  <span>Project Code</span>
+                  <strong><%= entry.project?.project_no || entry.project?.project_code || "-" %></strong>
                 </div>
                 <div class="detail-line">
                   <span>Status</span>
@@ -164,15 +196,11 @@
                 </div>
                 <div class="detail-line">
                   <span>Base Amount</span>
-                  <strong>₹ <%= rateConvert(Number(entry.amount || 0).toFixed(2)) %></strong>
+                  <strong>&#8377; <%= rateConvert(Number(entry.amount || 0).toFixed(2)) %></strong>
                 </div>
                 <div class="detail-line">
                   <span>Round Off</span>
-                  <strong>₹ <%= rateConvert(Number(entry.round_off || 0).toFixed(2)) %></strong>
-                </div>
-                <div class="detail-line">
-                  <span>Total Items</span>
-                  <strong><%= entry.items.length %></strong>
+                  <strong>&#8377; <%= rateConvert(Number(entry.round_off || 0).toFixed(2)) %></strong>
                 </div>
               </div>
             </section>
@@ -185,9 +213,9 @@
                 <div class="item-line">
                   <div>
                     <strong><%= line.item?.item_name || "Item" %></strong>
-                    <small>HSN: <%= line.item?.hsn || "-" %> | Qty: <%= line.qty %> | Rate: ₹ <%= rateConvert(Number(line.rate || 0).toFixed(2)) %></small>
+                    <small>HSN: <%= line.item?.hsn || "-" %> | Qty: <%= line.qty %> | Rate: &#8377; <%= rateConvert(Number(line.rate || 0).toFixed(2)) %></small>
                   </div>
-                  <strong>₹ <%= rateConvert(Number(line.amount || 0).toFixed(2)) %></strong>
+                  <strong>&#8377; <%= rateConvert(Number(line.amount || 0).toFixed(2)) %></strong>
                 </div>
                 <% }) %>
               </div>
@@ -215,12 +243,11 @@
     const summaryTotalValue = document.getElementById("summaryTotalValue");
     let activeFilter = "all";
 
-    const formatCurrency = (amount) => {
-      return Number(amount || 0).toLocaleString("en-IN", {
+    const formatCurrency = (amount) =>
+      Number(amount || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
-    };
 
     const updateSummary = (visibleRecords) => {
       const invoiceCount = visibleRecords.filter((record) => record.dataset.type === "invoice").length;
@@ -231,7 +258,7 @@
       summaryTotalRecords.textContent = visibleRecords.length;
       summaryInvoiceCount.textContent = invoiceCount;
       summaryQuotationCount.textContent = quotationCount;
-      summaryTotalValue.textContent = `₹ ${formatCurrency(totalValue)}`;
+      summaryTotalValue.textContent = `\u20B9 ${formatCurrency(totalValue)}`;
     };
 
     const applyFilters = () => {

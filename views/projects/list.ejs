@@ -1,0 +1,77 @@
+<%- include("../partials/layout-start", { title: "Projects", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-kanban-fill"></i> Project System</span>
+        <h1>Projects linked to clients and used directly in billing.</h1>
+        <p>Each project becomes the bridge between client management and invoice or quotation tracking.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <% if (canCreate) { %><a class="hero-btn primary" href="/projects/add"><i class="bi bi-plus-circle-fill"></i> Add Project</a><% } %>
+          <a class="hero-btn secondary" href="/clients"><i class="bi bi-people-fill"></i> Clients</a>
+          <a class="hero-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card"><div class="summary-label"><span>Total Projects</span><span class="summary-icon"><i class="bi bi-kanban"></i></span></div><h2 class="text-secondary"><%= stats.totalProjects %></h2><p>All active projects.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Active</span><span class="summary-icon"><i class="bi bi-lightning-charge"></i></span></div><h2 class="text-secondary"><%= stats.activeProjects %></h2><p>Projects marked active.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Invoices</span><span class="summary-icon"><i class="bi bi-receipt-cutoff"></i></span></div><h2 class="text-secondary"><%= stats.totalInvoices %></h2><p>Records already linked to projects.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Avg Value</span><span class="summary-icon"><i class="bi bi-graph-up"></i></span></div><h2 class="text-secondary"><%= stats.totalProjects ? (stats.totalInvoices / stats.totalProjects).toFixed(1) : "0.0" %></h2><p>Average records per project.</p></article>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="records">
+      <% if (!projects.length) { %>
+      <div class="empty-state">
+        <i class="bi bi-kanban"></i>
+        <h4>No projects added</h4>
+        <p>Create a project and connect it to a client before billing.</p>
+      </div>
+      <% } %>
+
+      <% projects.forEach((project, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(index + 1).padStart(2, "0") %></strong>
+            <span class="record-type quotation"><%= project.project_no || project.project_code %></span>
+          </div>
+
+          <div class="record-title">
+            <strong><%= project.project_name %></strong>
+            <span><%= project.client?.client_name || "No client" %></span>
+          </div>
+
+          <div class="record-cell">
+            <small>Status</small>
+            <strong><%= project.status %></strong>
+          </div>
+
+          <div class="record-cell">
+            <small>Location</small>
+            <strong><%= [project.city, project.state].filter(Boolean).join(", ") || "-" %></strong>
+          </div>
+
+          <div class="record-amount">
+            <small class="d-block text-muted text-center">Budget / Records</small>
+            <strong><%= project.budget ? `₹ ${rateConvert(Number(project.budget).toFixed(2))}` : "-" %> / <%= project._count.invoices %></strong>
+          </div>
+
+          <div class="record-actions">
+            <a class="action-btn view" href="/projects/<%= project.project_id %>"><i class="bi bi-bar-chart"></i> Dashboard</a>
+            <% if (canEdit) { %><a class="action-btn edit" href="/projects/edit/<%= project.project_id %>"><i class="bi bi-pencil-square"></i> Edit</a><% } %>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>
