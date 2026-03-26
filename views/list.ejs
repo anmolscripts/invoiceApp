@@ -104,7 +104,7 @@
         ].join(" ").toLowerCase();
       %>
       <article class="record-row" data-record data-type="<%= entryTypeClass %>" data-amount="<%= Number(entry.grand_total || 0) %>" data-search="<%= searchText %>">
-        <div class="record-main">
+        <div class="record-main" tabindex="0" role="button" aria-expanded="false" aria-label="Toggle details for <%= entry.client_name || "Unnamed Client" %>">
           <div class="record-index">
             <strong>#<%= String(i + 1).padStart(2, "0") %></strong>
             <span class="record-type <%= entryTypeClass %>"><%= entryType %></span>
@@ -130,10 +130,7 @@
             <strong>₹ <%= rateConvert(Number(entry.grand_total || 0).toFixed(2)) %></strong>
           </div>
 
-          <div class="record-actions">
-            <button class="action-btn view js-toggle-detail" type="button">
-              <i class="bi bi-eye"></i> Details
-            </button>
+          <div class="record-actions <%= entryTypeClass === "quotation" ? "three-actions" : "single-action" %>">
             <% if (entryTypeClass === "quotation") { %>
             <a class="action-btn view" href="/convert/<%= entry.invoice_id %>">
               <i class="bi bi-arrow-repeat"></i> Convert
@@ -146,6 +143,7 @@
         </div>
 
         <div class="record-detail">
+          <div class="record-detail-inner">
           <div class="detail-grid">
             <section class="detail-card">
               <h4>Record Details</h4>
@@ -195,6 +193,7 @@
               <p class="m-0 text-muted">No item rows are stored for this record yet.</p>
               <% } %>
             </section>
+          </div>
           </div>
         </div>
       </article>
@@ -262,14 +261,50 @@
       searchInput.addEventListener("input", applyFilters);
     }
 
-    document.querySelectorAll(".js-toggle-detail").forEach((button) => {
-      button.addEventListener("click", () => {
-        const row = button.closest(".record-row");
-        const isExpanded = row.classList.toggle("expanded");
-        button.innerHTML = isExpanded
-          ? '<i class="bi bi-eye-slash"></i> Hide'
-          : '<i class="bi bi-eye"></i> Details';
+    const closeAllRows = () => {
+      records.forEach((record) => {
+        record.classList.remove("expanded");
+        const trigger = record.querySelector(".record-main");
+        if (trigger) {
+          trigger.setAttribute("aria-expanded", "false");
+        }
       });
+    };
+
+    records.forEach((record) => {
+      const trigger = record.querySelector(".record-main");
+      const actions = record.querySelector(".record-actions");
+      if (!trigger) return;
+
+      const toggleRow = () => {
+        const isExpanded = record.classList.contains("expanded");
+        closeAllRows();
+        if (!isExpanded) {
+          record.classList.add("expanded");
+          trigger.setAttribute("aria-expanded", "true");
+        }
+      };
+
+      trigger.addEventListener("click", (event) => {
+        if (event.target.closest(".record-actions")) {
+          return;
+        }
+        toggleRow();
+      });
+
+      trigger.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+        event.preventDefault();
+        toggleRow();
+      });
+
+      if (actions) {
+        actions.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+      }
     });
 
     applyFilters();

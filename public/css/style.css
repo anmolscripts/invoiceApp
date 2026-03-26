@@ -231,10 +231,17 @@ table th {
 .summary-card h2,
 .metric-value {
   margin: 16px 0 6px;
-  font-size: clamp(1.7rem, 2.8vw, 2.35rem);
+  font-size: clamp(1rem, 1.5vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.05em;
 }
+
+.invoice-sheet {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+}
+
+
 
 .summary-card p,
 .metric-card p,
@@ -366,12 +373,30 @@ table th {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+.record-row:hover,
+.record-row.expanded {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
+}
+
 .record-main {
   padding: 20px 22px;
   display: grid;
-  grid-template-columns: 80px minmax(220px, 1.5fr) minmax(150px, 1fr) minmax(140px, 0.9fr) minmax(180px, 1fr) auto;
+  grid-template-columns: 78px minmax(180px, 1.45fr) minmax(120px, 0.82fr) minmax(150px, 1fr) minmax(130px, 0.9fr) minmax(220px, 1.15fr);
   gap: 16px;
   align-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.28s ease, transform 0.28s ease;
+}
+
+.record-main:focus-visible {
+  outline: 3px solid rgba(18, 52, 88, 0.18);
+  outline-offset: -3px;
+}
+
+.record-row.expanded .record-main {
+  background: linear-gradient(180deg, rgba(18, 52, 88, 0.04), rgba(255, 255, 255, 0.4));
 }
 
 .record-index {
@@ -435,8 +460,18 @@ table th {
   font-weight: 800;
 }
 
+.record-title,
+.record-cell,
+.record-amount,
+.record-actions {
+  min-width: 0;
+}
+
 .record-title strong {
   font-size: 1.02rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .record-title span,
@@ -445,22 +480,59 @@ table th {
   color: var(--brand-muted);
 }
 
+.record-title span,
+.record-cell strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.record-title span {
+  white-space: nowrap;
+}
+
+.record-cell strong {
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
 .record-amount strong {
-  font-size: 1.08rem;
+  font-size: 1rem;
   text-align: center;
+  white-space: nowrap;
 }
 
 .record-actions {
-  display: flex;
-  justify-content: flex-end;
+  --action-columns: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--action-columns), minmax(0, 1fr));
   gap: 10px;
-  flex-wrap: wrap;
+  justify-content: stretch;
+  align-items: stretch;
+  position: relative;
+  z-index: 1;
+}
+
+.record-actions.three-actions {
+  --action-columns: 2;
+}
+
+.record-actions.single-action {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.record-actions.single-action .action-btn {
+  justify-self: end;
+  min-width: 110px;
 }
 
 .action-btn {
   border: 0;
-  padding: 11px 14px;
+  justify-content: center;
+  padding: 10px 12px;
   font-weight: 700;
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .action-btn.view {
@@ -474,14 +546,28 @@ table th {
 }
 
 .record-detail {
-  display: none;
+  display: grid;
+  grid-template-rows: 0fr;
   border-top: 1px solid rgba(18, 52, 88, 0.08);
-  padding: 0 22px 22px;
+  padding: 0 22px;
   background: linear-gradient(180deg, rgba(18, 52, 88, 0.02), rgba(255, 255, 255, 0.6));
+  opacity: 0;
+  transition:
+    grid-template-rows 0.38s ease,
+    opacity 0.28s ease,
+    padding 0.32s ease,
+    border-color 0.28s ease;
 }
 
 .record-row.expanded .record-detail {
-  display: block;
+  grid-template-rows: 1fr;
+  padding: 0 22px 22px;
+  opacity: 1;
+}
+
+.record-detail-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .detail-grid {
@@ -489,6 +575,14 @@ table th {
   grid-template-columns: 1.2fr 1fr;
   gap: 18px;
   padding-top: 18px;
+  transform: translateY(-10px);
+  opacity: 0;
+  transition: transform 0.38s ease, opacity 0.28s ease;
+}
+
+.record-row.expanded .detail-grid {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .detail-card,
@@ -502,8 +596,16 @@ table th {
 }
 
 .detail-card {
-  background: rgba(255, 255, 255, 0.72);
-  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 249, 253, 0.9));
+  padding: 20px;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.record-row.expanded .detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.1);
 }
 
 .detail-card h4,
@@ -511,6 +613,8 @@ table th {
   margin: 0 0 14px;
   font-size: 0.98rem;
   font-weight: 800;
+  color: var(--brand-primary);
+  letter-spacing: 0.02em;
 }
 
 .detail-list,
@@ -534,8 +638,31 @@ table th {
 
 .detail-line,
 .item-line {
-  padding-bottom: 10px;
+  padding: 10px 0;
   border-bottom: 1px dashed rgba(18, 52, 88, 0.08);
+}
+
+.detail-line span,
+.item-line small {
+  color: var(--brand-muted);
+}
+
+.detail-line strong,
+.item-line strong {
+  color: var(--brand-text);
+}
+
+.item-line {
+  align-items: flex-start;
+}
+
+.item-line > div {
+  min-width: 0;
+}
+
+.item-line > div strong {
+  display: block;
+  margin-bottom: 4px;
 }
 
 .detail-line:last-child,
@@ -1119,7 +1246,7 @@ table th {
 
 @media (max-width: 1200px) {
   .record-main {
-    grid-template-columns: 72px 1.4fr 1fr 1fr;
+    grid-template-columns: 72px minmax(160px, 1.35fr) minmax(120px, 0.9fr) minmax(140px, 1fr);
   }
 
   .record-actions,
@@ -1129,6 +1256,10 @@ table th {
 
   .record-amount strong {
     text-align: left;
+  }
+
+  .record-actions {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   }
 }
 
@@ -1235,5 +1366,9 @@ table th {
   .action-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .record-actions {
+    grid-template-columns: 1fr;
   }
 }
