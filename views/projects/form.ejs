@@ -1,0 +1,99 @@
+<%- include("../partials/layout-start", { title: project ? "Edit Project" : "Add Project", bodyClass: "invoice-page" }) %>
+
+<main class="app-shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="hero-label"><i class="bi bi-kanban"></i> Project Profile</span>
+        <h1><%= project ? "Update the project and keep linked billing context intact." : "Create a project and connect it to the right client." %></h1>
+        <p>Projects sit between clients and invoices, making every quotation and invoice trackable from one place.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="top-btn primary" href="/projects"><i class="bi bi-kanban-fill"></i> Project List</a>
+          <a class="top-btn secondary" href="/clients"><i class="bi bi-people-fill"></i> Clients</a>
+          <a class="top-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="workbench">
+    <div class="panel-head">
+      <div>
+        <h2>Project Form</h2>
+        <p>Save the project once and use it throughout quotations and invoicing.</p>
+      </div>
+      <% if (project?.project_no || project?.project_code) { %>
+      <span class="doc-pill"><i class="bi bi-hash"></i> <%= project.project_no || project.project_code %></span>
+      <% } %>
+    </div>
+
+    <form action="/projects/save" method="post" class="stack-form">
+      <% if (project) { %>
+      <input type="hidden" name="project_id" value="<%= project.project_id %>" />
+      <% } %>
+
+      <div class="control-grid control-grid-wide">
+        <div class="field-card">
+          <label>Client</label>
+          <select class="form-select" name="client_id" required>
+            <option value="">Select client</option>
+            <% clients.forEach((client) => { %>
+            <option value="<%= client.client_id %>" <%= Number(project?.client_id) === client.client_id ? "selected" : "" %>><%= client.client_name %> (<%= client.client_no || client.client_code %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-card"><label>Project Name</label><input class="form-control" name="project_name" value="<%= project?.project_name || "" %>" required /></div>
+        <div class="field-card"><label>Project Type</label><input class="form-control" name="project_type" value="<%= project?.project_type || "" %>" /></div>
+        <div class="field-card">
+          <label>Status</label>
+          <select class="form-select" name="status">
+            <% ["Active", "On Hold", "Completed", "Closed"].forEach((status) => { %>
+            <option value="<%= status %>" <%= (project?.status || "Active") === status ? "selected" : "" %>><%= status %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-card"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="<%= project?.start_date ? new Date(project.start_date).toISOString().slice(0, 10) : "" %>" /></div>
+        <div class="field-card"><label>End Date</label><input class="form-control" type="date" name="end_date" value="<%= project?.end_date ? new Date(project.end_date).toISOString().slice(0, 10) : "" %>" /></div>
+        <div class="field-card"><label>Budget</label><input class="form-control" type="number" step="0.01" name="budget" value="<%= project?.budget ?? "" %>" /></div>
+        <div class="field-card">
+          <label>Billing Cycle</label>
+          <select class="form-select" name="billing_cycle_type">
+            <% ["Monthly", "Quarterly", "Yearly", "Custom", "Project Done"].forEach((cycle) => { %>
+            <option value="<%= cycle %>" <%= (project?.billing_cycle_type || "Monthly") === cycle ? "selected" : "" %>><%= cycle %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field-card"><label>Billing Anchor Date</label><input class="form-control" type="date" name="billing_cycle_anchor_date" value="<%= project?.billing_cycle_anchor_date ? new Date(project.billing_cycle_anchor_date).toISOString().slice(0, 10) : "" %>" /></div>
+        <div class="field-card"><label>Custom Interval Days</label><input class="form-control" type="number" name="billing_cycle_interval_days" value="<%= project?.billing_cycle_interval_days ?? "" %>" /></div>
+        <div class="field-card"><label>City</label><input class="form-control" name="city" value="<%= project?.city || "" %>" /></div>
+        <div class="field-card"><label>State</label><input class="form-control" name="state" value="<%= project?.state || "" %>" /></div>
+        <div class="field-card"><label>Country</label><input class="form-control" name="country" value="<%= project?.country || "India" %>" /></div>
+        <div class="field-card"><label>Postal Code</label><input class="form-control" name="postal_code" value="<%= project?.postal_code || "" %>" /></div>
+      </div>
+
+      <div class="detail-grid compact-detail-grid mt-4">
+        <section class="detail-card">
+          <h4>Address</h4>
+          <div class="field-card"><label>Site Address</label><textarea class="form-control textarea-control tall-textarea" name="site_address"><%= project?.site_address || "" %></textarea></div>
+        </section>
+        <section class="detail-card">
+          <h4>Description</h4>
+          <div class="field-card"><label>Project Description</label><textarea class="form-control textarea-control" name="description"><%= project?.description || "" %></textarea></div>
+          <div class="field-card mt-3"><label>Billing Notes</label><textarea class="form-control textarea-control" name="billing_cycle_notes"><%= project?.billing_cycle_notes || "" %></textarea></div>
+        </section>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-left"></div>
+        <div class="action-right">
+          <a href="/projects" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back</a>
+          <button type="submit" class="control-btn accent"><i class="bi bi-check2-circle"></i> <%= project ? "Update Project" : "Save Project" %></button>
+        </div>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

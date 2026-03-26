@@ -1,3 +1,33 @@
+<div id="appLoader" class="app-loader" aria-hidden="true">
+  <div class="app-loader-panel">
+    <img src="/img/logo.svg" alt="Loading" class="app-loader-logo" />
+    <div class="app-loader-spinner"></div>
+    <strong id="appLoaderText">Working...</strong>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const loader = document.getElementById("appLoader");
+    const loaderText = document.getElementById("appLoaderText");
+
+    window.AppLoader = {
+      show(text = "Working...") {
+        if (loaderText) loaderText.textContent = text;
+        if (loader) {
+          loader.classList.add("active");
+          loader.setAttribute("aria-hidden", "false");
+        }
+      },
+      hide() {
+        if (loader) {
+          loader.classList.remove("active");
+          loader.setAttribute("aria-hidden", "true");
+        }
+      },
+    };
+  })();
+</script>
 </body>
 
 </html>

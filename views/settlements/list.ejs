@@ -1,0 +1,60 @@
+<%- include("../partials/layout-start", { title: "Settlements", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-wallet2"></i> Settlement Desk</span>
+        <h1>Record payments, attach proof, and keep invoice settlement status updated.</h1>
+        <p>Only billing records appear here so the team can focus on collection and payment closure.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="hero-btn primary" href="/finance"><i class="bi bi-graph-up-arrow"></i> Finance</a>
+          <a class="hero-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+          <a class="hero-btn secondary" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="records">
+      <% if (!invoices.length) { %>
+      <div class="empty-state"><i class="bi bi-wallet2"></i><h4>No settlement records</h4><p>No invoices are available for settlement yet.</p></div>
+      <% } %>
+
+      <% invoices.forEach((invoice, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index">
+            <strong>#<%= String(index + 1).padStart(2, "0") %></strong>
+            <span class="record-type <%= (invoice.invoice_type || 'invoice').toLowerCase().replace(/\s+/g, '-') %>"><%= invoice.invoice_type %></span>
+          </div>
+          <div class="record-title">
+            <strong><%= invoice.invoice_number %></strong>
+            <span><%= invoice.client?.client_name || "-" %> | <%= invoice.project?.project_name || "-" %></span>
+          </div>
+          <div class="record-cell">
+            <small>Settled</small>
+            <strong>&#8377; <%= rateConvert(Number(invoice.settle_amount || 0).toFixed(2)) %></strong>
+          </div>
+          <div class="record-cell">
+            <small>Pending</small>
+            <strong>&#8377; <%= rateConvert(Number(invoice.pending_amount || 0).toFixed(2)) %></strong>
+          </div>
+          <div class="record-amount">
+            <small class="d-block text-muted text-center">Total</small>
+            <strong>&#8377; <%= rateConvert(Number(invoice.grand_total || 0).toFixed(2)) %></strong>
+          </div>
+          <div class="record-actions">
+            <% if (canEdit) { %><a class="action-btn view" href="/settlements/<%= invoice.invoice_id %>"><i class="bi bi-wallet2"></i> Settle</a><a class="action-btn edit" href="/edit/<%= invoice.invoice_id %>"><i class="bi bi-pencil-square"></i> Open</a><% } %>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

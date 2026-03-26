@@ -1,0 +1,75 @@
+<%- include("../partials/layout-start", { title: client ? "Edit Client" : "Add Client", bodyClass: "invoice-page" }) %>
+
+<main class="app-shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="hero-label"><i class="bi bi-building"></i> Client Profile</span>
+        <h1><%= client ? "Update the client record and keep all linked projects in sync." : "Create a full client record that can hold many projects." %></h1>
+        <p>Store contact, tax, address, and note details once, then reuse the client across multiple projects and invoices.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="top-btn primary" href="/clients"><i class="bi bi-people-fill"></i> Client List</a>
+          <a class="top-btn secondary" href="/projects"><i class="bi bi-kanban-fill"></i> Projects</a>
+          <a class="top-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="workbench">
+    <div class="panel-head">
+      <div>
+        <h2>Client Form</h2>
+        <p>Capture complete client details for billing, project tracking, and reporting.</p>
+      </div>
+      <% if (client?.client_no || client?.client_code) { %>
+      <span class="doc-pill"><i class="bi bi-hash"></i> <%= client.client_no || client.client_code %></span>
+      <% } %>
+    </div>
+
+    <form action="/clients/save" method="post" class="stack-form">
+      <% if (client) { %>
+      <input type="hidden" name="client_id" value="<%= client.client_id %>" />
+      <% } %>
+
+      <div class="control-grid control-grid-wide">
+        <div class="field-card"><label>Client Name</label><input class="form-control" name="client_name" value="<%= client?.client_name || "" %>" required /></div>
+        <div class="field-card"><label>Contact Person</label><input class="form-control" name="contact_person" value="<%= client?.contact_person || "" %>" /></div>
+        <div class="field-card"><label>Email</label><input class="form-control" type="email" name="email" value="<%= client?.email || "" %>" /></div>
+        <div class="field-card"><label>Phone Number</label><input class="form-control" name="phone_number" value="<%= client?.phone_number || "" %>" /></div>
+        <div class="field-card"><label>Alternate Phone</label><input class="form-control" name="alternate_phone" value="<%= client?.alternate_phone || "" %>" /></div>
+        <div class="field-card"><label>GSTIN</label><input class="form-control" name="gstin" value="<%= client?.gstin || "" %>" /></div>
+        <div class="field-card"><label>City</label><input class="form-control" name="city" value="<%= client?.city || "" %>" /></div>
+        <div class="field-card"><label>State</label><input class="form-control" name="state" value="<%= client?.state || "" %>" /></div>
+        <div class="field-card"><label>Country</label><input class="form-control" name="country" value="<%= client?.country || "India" %>" /></div>
+        <div class="field-card"><label>Postal Code</label><input class="form-control" name="postal_code" value="<%= client?.postal_code || "" %>" /></div>
+      </div>
+
+      <div class="detail-grid compact-detail-grid mt-4">
+        <section class="detail-card">
+          <h4>Addresses</h4>
+          <div class="stack-form">
+            <div class="field-card"><label>Billing Address</label><textarea class="form-control textarea-control" name="billing_address"><%= client?.billing_address || "" %></textarea></div>
+            <div class="field-card"><label>Shipping Address</label><textarea class="form-control textarea-control" name="shipping_address"><%= client?.shipping_address || "" %></textarea></div>
+          </div>
+        </section>
+        <section class="detail-card">
+          <h4>Notes</h4>
+          <div class="field-card h-100"><label>Notes</label><textarea class="form-control textarea-control tall-textarea" name="notes"><%= client?.notes || "" %></textarea></div>
+        </section>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-left"></div>
+        <div class="action-right">
+          <a href="/clients" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back</a>
+          <button type="submit" class="control-btn accent"><i class="bi bi-check2-circle"></i> <%= client ? "Update Client" : "Save Client" %></button>
+        </div>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

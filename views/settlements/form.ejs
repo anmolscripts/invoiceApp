@@ -1,0 +1,140 @@
+<%- include("../partials/layout-start", { title: "Settle Invoice", bodyClass: "invoice-page" }) %>
+
+<main class="app-shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="hero-label"><i class="bi bi-wallet2"></i> Settlement Entry</span>
+        <h1><%= invoice.invoice_number %></h1>
+        <p><%= invoice.client?.client_name || "-" %> | <%= invoice.project?.project_name || "-" %> | Pending: &#8377; <%= rateConvert(Number(invoice.pending_amount || 0).toFixed(2)) %></p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <a class="top-btn primary" href="/settlements"><i class="bi bi-wallet2"></i> Settlement List</a>
+          <% if (canEdit) { %><a class="top-btn secondary" href="/edit/<%= invoice.invoice_id %>"><i class="bi bi-pencil-square"></i> Invoice</a><% } %>
+          <a class="top-btn secondary" href="/finance"><i class="bi bi-graph-up-arrow"></i> Finance</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="workbench">
+    <div class="detail-grid compact-detail-grid mb-4">
+      <section class="detail-card">
+        <h4>Invoice Snapshot</h4>
+        <div class="detail-list">
+          <div class="detail-line"><span>Type</span><strong><%= invoice.invoice_type %></strong></div>
+          <div class="detail-line"><span>Total</span><strong>&#8377; <%= rateConvert(Number(invoice.grand_total || 0).toFixed(2)) %></strong></div>
+          <div class="detail-line"><span>Settled</span><strong>&#8377; <%= rateConvert(Number(invoice.settle_amount || 0).toFixed(2)) %></strong></div>
+          <div class="detail-line"><span>Pending</span><strong>&#8377; <%= rateConvert(Number(invoice.pending_amount || 0).toFixed(2)) %></strong></div>
+        </div>
+      </section>
+      <section class="detail-card">
+        <h4>Past Settlements</h4>
+        <% if (invoice.settlements.length) { %>
+        <div class="item-stack">
+          <% invoice.settlements.forEach((settlement) => { %>
+          <div class="item-line">
+            <div>
+              <strong><%= settlement.payment_mode %></strong>
+              <small><%= formatDate(settlement.settlement_date) %> | <%= settlement.remark || "No remark" %></small>
+            </div>
+            <strong>&#8377; <%= rateConvert(Number(settlement.amount || 0).toFixed(2)) %></strong>
+          </div>
+          <% }) %>
+        </div>
+        <% } else { %>
+        <p class="m-0 text-muted">No settlements recorded yet.</p>
+        <% } %>
+      </section>
+    </div>
+
+    <div class="workbench">
+      <div class="panel-head">
+        <div><h2>Save Settlement</h2><p>Attach cheque copy, DD copy, online payment screenshots, or mail proof.</p></div>
+      </div>
+      <form id="settlementForm" class="stack-form">
+        <input type="hidden" name="invoice_id" value="<%= invoice.invoice_id %>" />
+        <div class="control-grid control-grid-wide">
+          <div class="field-card"><label>Settlement Date</label><input class="form-control" type="date" name="settlement_date" value="<%= new Date().toISOString().slice(0, 10) %>" /></div>
+          <div class="field-card"><label>Amount</label><input class="form-control" type="number" step="0.01" name="amount" max="<%= Number(invoice.pending_amount || 0) %>" required /></div>
+          <div class="field-card"><label>Payment Mode</label><select class="form-select" name="payment_mode"><% ["Cash", "Cheque", "DD", "Online", "UPI", "Bank Transfer"].forEach((mode) => { %><option value="<%= mode %>"><%= mode %></option><% }) %></select></div>
+        </div>
+        <div class="detail-grid compact-detail-grid">
+          <section class="detail-card">
+            <div class="field-card"><label>Remark</label><textarea class="form-control textarea-control" name="remark"></textarea></div>
+          </section>
+          <section class="detail-card">
+            <div class="field-card"><label>Documents</label><input class="form-control" type="file" id="settlementDocuments" multiple /></div>
+            <p class="empty-message mt-2">Supported as uploaded file copies saved with the settlement record.</p>
+            <div id="settlementFileMeta" class="hint-box mt-3">No documents selected.</div>
+          </section>
+        </div>
+        <div class="action-bar">
+          <div class="action-right">
+            <a href="/settlements" class="control-btn danger-soft"><i class="bi bi-arrow-left"></i> Back</a>
+            <button type="submit" class="control-btn accent"><i class="bi bi-check2-circle"></i> Save Settlement</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+  const fileInput = document.getElementById("settlementDocuments");
+  const fileMeta = document.getElementById("settlementFileMeta");
+
+  fileInput.addEventListener("change", () => {
+    const files = Array.from(fileInput.files || []);
+    if (!files.length) {
+      fileMeta.textContent = "No documents selected.";
+      return;
+    }
+
+    const totalSizeMb = (files.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024)).toFixed(2);
+    fileMeta.innerHTML = `<span class="loader-inline"></span>${files.length} file(s) selected | ${totalSizeMb} MB total`;
+  });
+
+  document.getElementById("settlementForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const files = Array.from(fileInput.files || []);
+
+    try {
+      window.AppLoader?.show("Preparing settlement documents...");
+
+      const documents = await Promise.all(
+        files.map((file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve({ name: file.name, type: file.type, content: reader.result });
+            reader.readAsDataURL(file);
+          })
+        )
+      );
+
+      const payload = Object.fromEntries(new FormData(form).entries());
+      payload.documents = documents;
+
+      window.AppLoader?.show("Saving settlement...");
+      const response = await fetch("/settlements/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        alert(result.message || "Unable to save settlement");
+        return;
+      }
+
+      window.location.href = "/settlements";
+    } finally {
+      window.AppLoader?.hide();
+    }
+  });
+</script>
+
+<%- include("../partials/layout-end") %>

@@ -1,0 +1,83 @@
+<%- include("../partials/layout-start", { title: "Finance Dashboard", bodyClass: "list-page" }) %>
+
+<main class="shell">
+  <section class="hero-panel">
+    <div class="row g-4 align-items-end">
+      <div class="col-lg-8">
+        <span class="eyebrow"><i class="bi bi-graph-up-arrow"></i> Finance Dashboard</span>
+        <h1>Filter business by client, project, tags, status, and settlement progress.</h1>
+        <p>Track how much each client has done in business and keep a closer watch on receivables.</p>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-actions">
+          <% if (canEdit) { %><a class="hero-btn primary" href="/settlements"><i class="bi bi-wallet2"></i> Settlements</a><% } %>
+          <a class="hero-btn secondary" href="/invoices"><i class="bi bi-receipt"></i> Invoices</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card"><div class="summary-label"><span>Records</span><span class="summary-icon"><i class="bi bi-files"></i></span></div><h2 class="text-secondary"><%= stats.totalInvoices %></h2><p>Filtered finance records.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Total Value</span><span class="summary-icon"><i class="bi bi-cash-stack"></i></span></div><h2 class="text-secondary">&#8377; <%= rateConvert(Number(stats.totalValue || 0).toFixed(2)) %></h2><p>Total invoiced value.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Settled</span><span class="summary-icon"><i class="bi bi-check2-circle"></i></span></div><h2 class="text-secondary">&#8377; <%= rateConvert(Number(stats.totalSettled || 0).toFixed(2)) %></h2><p>Total collected amount.</p></article>
+      <article class="summary-card"><div class="summary-label"><span>Pending</span><span class="summary-icon"><i class="bi bi-hourglass-split"></i></span></div><h2 class="text-secondary">&#8377; <%= rateConvert(Number(stats.totalPending || 0).toFixed(2)) %></h2><p>Outstanding receivables.</p></article>
+    </div>
+  </section>
+
+  <section class="board">
+    <form class="stack-form mb-4" method="get" action="/finance">
+      <div class="control-grid control-grid-wide">
+        <div class="field-card"><label>Client</label><select class="form-select" name="client_id"><option value="">All</option><% clients.forEach((client) => { %><option value="<%= client.client_id %>" <%= String(filters.client_id || "") === String(client.client_id) ? "selected" : "" %>><%= client.client_name %></option><% }) %></select></div>
+        <div class="field-card"><label>Project</label><select class="form-select" name="project_id"><option value="">All</option><% projects.forEach((project) => { %><option value="<%= project.project_id %>" <%= String(filters.project_id || "") === String(project.project_id) ? "selected" : "" %>><%= project.project_name %></option><% }) %></select></div>
+        <div class="field-card"><label>Type</label><select class="form-select" name="invoice_type"><option value="">All</option><% ["Invoice", "Quotation", "Debit Note", "Credit Note"].forEach((type) => { %><option value="<%= type %>" <%= String(filters.invoice_type || "") === type ? "selected" : "" %>><%= type %></option><% }) %></select></div>
+        <div class="field-card"><label>Status</label><select class="form-select" name="status"><option value="">All</option><% ["pending", "partial", "settled"].forEach((status) => { %><option value="<%= status %>" <%= String(filters.status || "") === status ? "selected" : "" %>><%= status %></option><% }) %></select></div>
+        <div class="field-card"><label>Tag</label><input class="form-control" name="tag" value="<%= filters.tag || "" %>" placeholder="AMC, urgent" /></div>
+        <div class="field-card d-flex align-items-end"><button class="control-btn accent w-100 justify-content-center" type="submit"><i class="bi bi-funnel-fill"></i> Apply Filters</button></div>
+      </div>
+    </form>
+
+    <div class="detail-grid mb-4">
+      <section class="detail-card">
+        <h4>Business by Client</h4>
+        <% const clientEntries = Object.entries(stats.businessByClient || {}); %>
+        <% if (clientEntries.length) { %>
+        <div class="item-stack">
+          <% clientEntries.forEach(([name, amount]) => { %>
+          <div class="item-line"><span><%= name %></span><strong>&#8377; <%= rateConvert(Number(amount || 0).toFixed(2)) %></strong></div>
+          <% }) %>
+        </div>
+        <% } else { %>
+        <p class="m-0 text-muted">No business data found for the current filter.</p>
+        <% } %>
+      </section>
+      <section class="detail-card">
+        <h4>Finance Notes</h4>
+        <div class="detail-list">
+          <div class="detail-line"><span>Unique Clients</span><strong><%= stats.uniqueClients %></strong></div>
+          <div class="detail-line"><span>Receivable Health</span><strong><%= stats.totalPending > 0 ? "Collection Follow-up Needed" : "Fully Settled" %></strong></div>
+          <div class="detail-line"><span>Filters</span><strong><%= [filters.invoice_type, filters.status, filters.tag].filter(Boolean).join(" | ") || "No filters applied" %></strong></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="records">
+      <% if (!invoices.length) { %>
+      <div class="empty-state"><i class="bi bi-graph-up"></i><h4>No finance rows found</h4><p>Try clearing filters or create more invoice records.</p></div>
+      <% } %>
+      <% invoices.forEach((invoice, index) => { %>
+      <article class="record-row expanded">
+        <div class="record-main">
+          <div class="record-index"><strong>#<%= String(index + 1).padStart(2, "0") %></strong><span class="record-type <%= (invoice.invoice_type || 'invoice').toLowerCase().replace(/\s+/g, '-') %>"><%= invoice.invoice_type %></span></div>
+          <div class="record-title"><strong><%= invoice.invoice_number %></strong><span><%= invoice.client?.client_name || "-" %> | <%= invoice.project?.project_name || "-" %></span></div>
+          <div class="record-cell"><small>Tags</small><strong><%= invoice.tags || "-" %></strong></div>
+          <div class="record-cell"><small>Status</small><strong><%= invoice.settle || "-" %></strong></div>
+          <div class="record-amount"><small class="d-block text-muted text-center">Pending</small><strong>&#8377; <%= rateConvert(Number(invoice.pending_amount || 0).toFixed(2)) %></strong></div>
+          <div class="record-actions"><% if (canEdit) { %><a class="action-btn view" href="/settlements/<%= invoice.invoice_id %>"><i class="bi bi-wallet2"></i> Settle</a><a class="action-btn edit" href="/edit/<%= invoice.invoice_id %>"><i class="bi bi-pencil-square"></i> Open</a><% } %></div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include("../partials/layout-end") %>

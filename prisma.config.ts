@@ -4,7 +4,7 @@ import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   datasource: {
-    url: "file:./prisma/invoice.db",
+    url: process.env.DATABASE_URL || "file:./prisma/invoice.db",
   },
   migrations: {
     seed: "node ./prisma/seed.js",

@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,69 +6,258 @@ datasource db {
   provider = "sqlite"
 }
 
-
 model Item {
-  item_id     Int      @id @default(autoincrement())
-  item_name   String
-  hsn         String?
-  created_at  DateTime @default(now())
-  created_by  String?
-  updated_at  DateTime @updatedAt
-  active      Boolean  @default(true)
-
-  invoiceItems InvoiceItem[]
+  item_id       Int           @id @default(autoincrement())
+  item_name     String
+  hsn           String?
+  created_at    DateTime      @default(now())
+  created_by    String?
+  updated_by    String?
+  updated_at    DateTime      @updatedAt
+  active        Boolean       @default(true)
+  invoiceItems  InvoiceItem[]
 }
 
 model Gst {
-  GST_ID     Int   @id @default(autoincrement())
+  GST_ID           Int       @id @default(autoincrement())
   GST_DESCRIPTION  String
   SGST_RATE        Float
   CGST_RATE        Float
   IGST_RATE        Float
-  created_at  DateTime @default(now())
-  created_by  String?
-  updated_at  DateTime @updatedAt
-  active      Boolean  @default(true)
+  created_at       DateTime  @default(now())
+  created_by       String?
+  updated_by       String?
+  updated_at       DateTime  @updatedAt
+  active           Boolean   @default(true)
+  invoices         Invoice[]
+}
 
-  invoices Invoice[]
+model Client {
+  client_id         Int       @id @default(autoincrement())
+  client_code       String    @unique
+  client_no         String?   @unique
+  client_name       String
+  contact_person    String?
+  email             String?
+  phone_number      String?
+  alternate_phone   String?
+  gstin             String?
+  billing_address   String?
+  shipping_address  String?
+  city              String?
+  state             String?
+  country           String?
+  postal_code       String?
+  notes             String?
+  created_at        DateTime  @default(now())
+  created_by        String?
+  updated_by        String?
+  updated_at        DateTime  @updatedAt
+  active            Boolean   @default(true)
+  projects          Project[]
+  invoices          Invoice[]
+}
+
+model Project {
+  project_id        Int       @id @default(autoincrement())
+  project_code      String    @unique
+  project_no        String?   @unique
+  client_id         Int
+  project_name      String
+  project_type      String?
+  status            String    @default("Active")
+  billing_cycle_type String?  @default("Monthly")
+  billing_cycle_interval_days Int?
+  billing_cycle_custom_value  Int?
+  billing_cycle_custom_unit   String?
+  billing_cycle_anchor_date   DateTime?
+  billing_cycle_next_date     DateTime?
+  last_billed_at              DateTime?
+  billing_cycle_notes         String?
+  site_address      String?
+  city              String?
+  state             String?
+  country           String?
+  postal_code       String?
+  start_date        DateTime?
+  end_date          DateTime?
+  budget            Float?
+  description       String?
+  created_at        DateTime  @default(now())
+  created_by        String?
+  updated_by        String?
+  updated_at        DateTime  @updatedAt
+  active            Boolean   @default(true)
+  client            Client    @relation(fields: [client_id], references: [client_id])
+  invoices          Invoice[]
+  histories         ActivityHistory[]
+  settlements       Settlement[]
+
+  @@index([client_id])
 }
 
 model Invoice {
-  invoice_id      Int      @id @default(autoincrement())
-  invoice_number  String   @unique
-  invoice_type    String?
-  client_name     String
-  client_address  String?
-  phone_number    String?
-  invoice_date    DateTime
-   gst_id          Int?   // ✅ add this
-  gst             Gst?   @relation(fields: [gst_id], references: [GST_ID]) // ✅ relation
-  amount          Float
-  round_off       Float?
-  grand_total     Float
-  settle          String
-  settle_amount   Float?
-  pending_amount  Float?
-  created_at      DateTime @default(now())
-  created_by      String?
-  updated_at      DateTime @updatedAt
-  active          Boolean  @default(true)
+  invoice_id        Int        @id @default(autoincrement())
+  invoice_number    String     @unique
+  invoice_type      String?
+  tags              String?
+  client_id         Int?
+  project_id        Int?
+  client_name       String
+  client_address    String?
+  phone_number      String?
+  invoice_date      DateTime
+  gst_id            Int?
+  amount            Float
+  round_off         Float?
+  grand_total       Float
+  settle            String
+  settle_amount     Float?
+  pending_amount    Float?
+  created_at        DateTime   @default(now())
+  created_by        String?
+  updated_by        String?
+  updated_at        DateTime   @updatedAt
+  active            Boolean    @default(true)
+  gst               Gst?       @relation(fields: [gst_id], references: [GST_ID])
+  client            Client?    @relation(fields: [client_id], references: [client_id])
+  project           Project?   @relation(fields: [project_id], references: [project_id])
+  items             InvoiceItem[]
+  settlements       Settlement[]
+  histories         ActivityHistory[]
 
-  items InvoiceItem[]
+  @@index([client_id])
+  @@index([project_id])
 }
 
 model InvoiceItem {
-  invoice_item_id Int      @id @default(autoincrement())
-  item_id         Int
-  invoice_id      Int
-  qty             Float
-  rate            Float
-  amount          Float
-  created_at      DateTime @default(now())
-  created_by      String?
-  updated_at      DateTime @updatedAt
-  active          Boolean  @default(true)
+  invoice_item_id   Int       @id @default(autoincrement())
+  item_id           Int
+  invoice_id        Int
+  qty               Float
+  rate              Float
+  amount            Float
+  created_at        DateTime  @default(now())
+  created_by        String?
+  updated_by        String?
+  updated_at        DateTime  @updatedAt
+  active            Boolean   @default(true)
+  item              Item      @relation(fields: [item_id], references: [item_id])
+  invoice           Invoice   @relation(fields: [invoice_id], references: [invoice_id], onDelete: Cascade)
 
-  item    Item    @relation(fields: [item_id], references: [item_id])
-  invoice Invoice @relation(fields: [invoice_id], references: [invoice_id])
+  @@index([invoice_id])
+  @@index([item_id])
+}
+
+model Settlement {
+  settlement_id     Int       @id @default(autoincrement())
+  invoice_id        Int
+  project_id        Int?
+  settlement_date   DateTime  @default(now())
+  amount            Float
+  payment_mode      String
+  remark            String?
+  created_at        DateTime  @default(now())
+  created_by        String?
+  updated_by        String?
+  updated_at        DateTime  @updatedAt
+  active            Boolean   @default(true)
+  invoice           Invoice   @relation(fields: [invoice_id], references: [invoice_id], onDelete: Cascade)
+  project           Project?  @relation(fields: [project_id], references: [project_id])
+  documents         SettlementDocument[]
+  histories         ActivityHistory[]
+
+  @@index([invoice_id])
+  @@index([project_id])
+}
+
+model AppModule {
+  module_id        Int          @id @default(autoincrement())
+  module_key       String       @unique
+  module_name      String
+  module_path      String
+  active           Boolean      @default(true)
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  userModules      UserModule[]
+}
+
+model AppUser {
+  app_user_id      Int                  @id @default(autoincrement())
+  user_code        String               @unique
+  user_name        String
+  phone_number     String?
+  email            String?              @unique
+  dob              DateTime?
+  father_name      String?
+  designation      String?
+  address          String?
+  role             String               @default("viewer")
+  password_hash    String?
+  must_set_password Boolean             @default(true)
+  created_at       DateTime             @default(now())
+  created_by       String?
+  updated_at       DateTime             @updatedAt
+  updated_by       String?
+  active           Boolean              @default(true)
+  userModules      UserModule[]
+  setupTokens      PasswordSetupToken[]
+}
+
+model UserModule {
+  user_module_id   Int        @id @default(autoincrement())
+  app_user_id      Int
+  module_id        Int
+  created_at       DateTime   @default(now())
+  appUser          AppUser    @relation(fields: [app_user_id], references: [app_user_id], onDelete: Cascade)
+  module           AppModule  @relation(fields: [module_id], references: [module_id], onDelete: Cascade)
+
+  @@unique([app_user_id, module_id])
+  @@index([app_user_id])
+  @@index([module_id])
+}
+
+model PasswordSetupToken {
+  password_setup_token_id Int       @id @default(autoincrement())
+  app_user_id             Int
+  token                   String    @unique
+  expires_at              DateTime
+  used_at                 DateTime?
+  created_at              DateTime  @default(now())
+  appUser                 AppUser   @relation(fields: [app_user_id], references: [app_user_id], onDelete: Cascade)
+
+  @@index([app_user_id])
+}
+
+model SettlementDocument {
+  settlement_document_id Int       @id @default(autoincrement())
+  settlement_id          Int
+  file_name              String
+  file_path              String?
+  file_data              String?
+  mime_type              String?
+  created_at             DateTime  @default(now())
+  settlement             Settlement @relation(fields: [settlement_id], references: [settlement_id], onDelete: Cascade)
+
+  @@index([settlement_id])
+}
+
+model ActivityHistory {
+  history_id       Int        @id @default(autoincrement())
+  table_name       String
+  record_id        Int
+  action           String
+  payload_json     String?
+  created_at       DateTime   @default(now())
+  invoice_id       Int?
+  project_id       Int?
+  settlement_id    Int?
+  invoice          Invoice?   @relation(fields: [invoice_id], references: [invoice_id], onDelete: Cascade)
+  project          Project?   @relation(fields: [project_id], references: [project_id], onDelete: Cascade)
+  settlement       Settlement? @relation(fields: [settlement_id], references: [settlement_id], onDelete: Cascade)
+
+  @@index([table_name, record_id])
+  @@index([invoice_id])
+  @@index([project_id])
+  @@index([settlement_id])
 }
